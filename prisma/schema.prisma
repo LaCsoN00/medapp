@@ -1,0 +1,209 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model User {
+  id               Int       @id @default(autoincrement())
+  email            String    @unique
+  password         String
+  role             String
+  createdAt        DateTime  @default(now())
+  medecin          Medecin?
+  messagesReceived Message[] @relation("MessageReceiver")
+  messagesSent     Message[] @relation("MessageSender")
+  patient          Patient?
+}
+
+model Patient {
+  id                   Int                   @id @default(autoincrement())
+  firstName            String
+  lastName             String
+  email                String                @unique
+  phone                String?
+  userId               Int?                  @unique
+  address              String?
+  city                 String?
+  photo                String?
+  appointments         Appointment[]
+  healthData           HealthData[]          @relation("PatientHealthData")
+  medicalRecord        MedicalRecord?
+  user                 User?                 @relation(fields: [userId], references: [id])
+  payments             Payment[]
+  prescriptions        Prescription[]
+  prescriptionRequests PrescriptionRequest[]
+  reviews              Review[]
+  new_Prescription     new_Prescription[]
+}
+
+model MedicalRecord {
+  id        Int      @id @default(autoincrement())
+  patientId Int      @unique
+  notes     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  patient   Patient  @relation(fields: [patientId], references: [id])
+}
+
+model Appointment {
+  id        Int      @id @default(autoincrement())
+  patientId Int
+  medecinId Int
+  date      DateTime
+  reason    String?
+  status    String   @default("PENDING")
+  createdAt DateTime @default(now())
+  patient   Patient  @relation(fields: [patientId], references: [id])
+  medecin   Medecin  @relation(fields: [medecinId], references: [id])
+  review    Review?
+}
+
+model Prescription {
+  id                   Int                   @id @default(autoincrement())
+  patientId            Int
+  medecinId            Int
+  medication           String
+  dosage               String
+  renewal              Boolean               @default(false)
+  createdAt            DateTime              @default(now())
+  medecin              Medecin               @relation(fields: [medecinId], references: [id])
+  patient              Patient               @relation(fields: [patientId], references: [id])
+  prescriptionRequests PrescriptionRequest[]
+}
+
+model Payment {
+  id        Int      @id @default(autoincrement())
+  patientId Int
+  amount    Float
+  method    String
+  date      DateTime @default(now())
+  details   String?
+  patient   Patient  @relation(fields: [patientId], references: [id])
+}
+
+model MedicalLocation {
+  id        Int     @id @default(autoincrement())
+  name      String
+  address   String
+  latitude  Float
+  longitude Float
+  type      String
+  province  String?
+}
+
+model Speciality {
+  id          Int       @id @default(autoincrement())
+  name        String    @unique
+  icon        String
+  description String?
+  createdAt   DateTime  @default(now())
+  medecins    Medecin[]
+}
+
+model Medecin {
+  id                   Int                   @id @default(autoincrement())
+  firstName            String
+  lastName             String
+  email                String                @unique
+  phone                String?
+  address              String?
+  city                 String?
+  rating               Float                 @default(0)
+  reviews              Int                   @default(0)
+  experience           String?
+  languages            String?
+  specialityId         Int
+  userId               Int                   @unique
+  createdAt            DateTime              @default(now())
+  status               String                @default("AVAILABLE")
+  statusMode           String                @default("AUTO")
+  about                String?
+  education            String?
+  photo                String?
+  appointments         Appointment[]
+  speciality           Speciality            @relation(fields: [specialityId], references: [id])
+  user                 User                  @relation(fields: [userId], references: [id])
+  workingHours         MedecinWorkingHour[]
+  prescriptions        Prescription[]
+  prescriptionRequests PrescriptionRequest[]
+  reviews_list         Review[]
+  new_Prescription     new_Prescription[]
+}
+
+model MedecinWorkingHour {
+  id        Int     @id @default(autoincrement())
+  medecinId Int
+  dayOfWeek Int
+  startTime String
+  endTime   String
+  medecin   Medecin @relation(fields: [medecinId], references: [id])
+}
+
+model Review {
+  id            Int          @id @default(autoincrement())
+  patientId     Int
+  medecinId     Int
+  rating        Int
+  comment       String?
+  appointmentId Int?         @unique
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+  patient       Patient      @relation(fields: [patientId], references: [id])
+  medecin       Medecin      @relation(fields: [medecinId], references: [id])
+  appointment   Appointment? @relation(fields: [appointmentId], references: [id])
+
+  @@unique([patientId, medecinId])
+}
+
+model PrescriptionRequest {
+  id             Int           @id @default(autoincrement())
+  patientId      Int
+  medecinId      Int
+  motif          String
+  status         String        @default("PENDING")
+  prescriptionId Int?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  patient        Patient       @relation(fields: [patientId], references: [id])
+  medecin        Medecin       @relation(fields: [medecinId], references: [id])
+  prescription   Prescription? @relation(fields: [prescriptionId], references: [id])
+}
+
+model HealthData {
+  id        Int      @id @default(autoincrement())
+  patientId Int
+  label     String
+  value     String
+  status    String
+  date      DateTime
+  icon      String?
+  patient   Patient  @relation("PatientHealthData", fields: [patientId], references: [id])
+}
+
+model new_Prescription {
+  id         Int      @id @default(autoincrement())
+  patientId  Int
+  medecinId  Int
+  medication String
+  dosage     String
+  renewal    Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  Patient    Patient  @relation(fields: [patientId], references: [id])
+  Medecin    Medecin  @relation(fields: [medecinId], references: [id])
+}
+
+model Message {
+  id         Int      @id @default(autoincrement())
+  senderId   Int
+  receiverId Int
+  content    String
+  sentAt     DateTime @default(now())
+  lu         Boolean  @default(false)
+  receiver   User     @relation("MessageReceiver", fields: [receiverId], references: [id])
+  sender     User     @relation("MessageSender", fields: [senderId], references: [id])
+}
