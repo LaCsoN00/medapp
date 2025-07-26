@@ -658,7 +658,7 @@ const PaymentSection = () => {
 
       {/* Modale de paiement selon la méthode */}
       <Dialog open={modalOpen} onOpenChange={setModalOpen}>
-        <DialogContent className="bg-white shadow-2xl rounded-2xl p-6">
+        <DialogContent className="bg-base-100 shadow-2xl rounded-2xl p-6">
           <DialogHeader className="mb-2">
             <DialogTitle className="text-2xl font-bold text-center mb-1">Paiement - {selectedMethod}</DialogTitle>
             <p className="text-center text-base-content/70 text-sm mb-2">Veuillez remplir les informations pour finaliser votre paiement.</p>

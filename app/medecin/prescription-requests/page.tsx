@@ -173,7 +173,7 @@ export default function MedecinPrescriptionRequestsPage() {
           {/* Modale de prescription */}
           {requests.map((req) => showModalId === req.id && (
             <div key={req.id} className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-              <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto border border-base-200 relative animate-fade-in">
+              <div className="bg-base-100 rounded-2xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto border border-base-300 relative animate-fade-in">
                 <div className="flex items-center justify-between p-6 border-b border-base-200 bg-base-100 rounded-t-2xl">
                   <h3 className="text-xl font-bold flex items-center gap-2 text-primary">
                     <FileText className="w-6 h-6 text-primary" />

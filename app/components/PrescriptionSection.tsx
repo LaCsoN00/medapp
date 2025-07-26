@@ -270,7 +270,7 @@ const PrescriptionSection = () => {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               {doctorPrescriptions.map((prescription) => (
-                <Card key={prescription.id} className="card bg-white shadow-xl rounded-2xl border border-base-200 hover:shadow-2xl transition-all duration-200">
+                <Card key={prescription.id} className="card bg-base-100 shadow-xl rounded-2xl border border-base-300 hover:shadow-2xl transition-all duration-200">
                   <CardContent className="p-6">
                     <div className="flex items-center gap-4 mb-4">
                       <Avatar className="w-14 h-14 shadow-md">
@@ -369,7 +369,7 @@ const PrescriptionSection = () => {
                       <Plus className="w-4 h-4" />
                       <span className="ml-2">Nouvelle demande</span>
                     </Button>
-                    <Button className="btn btn-secondary" onClick={handleQuickRenew}>
+                    <Button className="btn btn-primary" onClick={handleQuickRenew}>
                       <Calendar className="w-4 h-4" />
                       <span className="ml-2">Planifier renouvellement</span>
                     </Button>
@@ -460,8 +460,8 @@ const PrescriptionSection = () => {
               {/* Modale de détails */}
               {showDetailsModal && selectedPrescription && (
                 <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-                  <div className="bg-white rounded-lg shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto">
-                    <div className="flex items-center justify-between p-6 border-b">
+                  <div className="bg-base-100 rounded-lg shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto">
+                    <div className="flex items-center justify-between p-6 border-b border-base-300">
                       <h3 className="text-lg font-semibold flex items-center gap-2">
                         <FileText className="w-5 h-5 text-primary" />
                         Détails de l&apos;ordonnance
@@ -481,8 +481,8 @@ const PrescriptionSection = () => {
               {/* Modale de création d'ordonnance */}
               {showCreateModal && (
                 <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-                  <div className="bg-white rounded-lg shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto">
-                    <div className="flex items-center justify-between p-6 border-b">
+                  <div className="bg-base-100 rounded-lg shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto">
+                    <div className="flex items-center justify-between p-6 border-b border-base-300">
                       <h3 className="text-lg font-semibold flex items-center gap-2">
                         <Plus className="w-5 h-5 text-primary" />
                         Nouvelle ordonnance
@@ -509,8 +509,8 @@ const PrescriptionSection = () => {
               {/* Modale de demande d'ordonnance (choix médecin + motif) */}
               {showRequestModal && (
                 <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-                  <div className="bg-white rounded-lg shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto">
-                    <div className="flex items-center justify-between p-6 border-b">
+                  <div className="bg-base-100 rounded-lg shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto">
+                    <div className="flex items-center justify-between p-6 border-b border-base-300">
                       <h3 className="text-lg font-semibold flex items-center gap-2">
                         <Plus className="w-5 h-5 text-primary" />
                         Nouvelle demande d&apos;ordonnance

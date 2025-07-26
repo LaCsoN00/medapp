@@ -59,18 +59,18 @@ const LoginPage = () => {
       value: 'PATIENT' as const,
       label: 'Patient',
       icon: Heart,
-      color: 'text-blue-600'
+      color: 'text-primary'
     },
     {
       value: 'MEDECIN' as const,
       label: 'Médecin',
       icon: Stethoscope,
-      color: 'text-green-600'
+      color: 'text-secondary'
     }
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4 w-full">
+    <div className="min-h-screen bg-base-100 flex items-center justify-center p-4 w-full">
       <div className="w-full max-w-sm">
         <Card className="card bg-base-100 shadow-xl max-w-full">
           <CardHeader className="text-center pb-4 break-words max-w-full">
@@ -157,17 +157,17 @@ const LoginPage = () => {
                 ) : (
                   <User className="w-4 h-4 mr-2" />
                 )}
-                {loading ? 'Connexion...' : 'Se connecter'}
+                Se connecter
               </Button>
             </form>
 
-            {/* Lien d'inscription */}
-            <div className="text-center pt-2 border-t border-base-300 break-words max-w-full">
-              <p className="text-xs text-base-content/70 break-words max-w-full">
+            {/* Lien vers l'inscription */}
+            <div className="text-center">
+              <p className="text-sm text-base-content/70">
                 Pas encore de compte ?{' '}
-                <button 
+                <button
                   onClick={() => router.push('/register')}
-                  className="text-primary hover:underline font-medium break-words max-w-full"
+                  className="text-primary hover:underline font-medium"
                 >
                   S&apos;inscrire
                 </button>

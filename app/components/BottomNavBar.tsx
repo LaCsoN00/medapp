@@ -26,7 +26,7 @@ const BottomNavBar = () => {
       <nav className={`fixed bottom-4 left-1/2 -translate-x-1/2 z-50 w-[98vw] sm:w-auto transition-all duration-300 ease-in-out ${
         isVisible ? 'translate-y-0 opacity-100' : 'translate-y-full opacity-0'
       }`}>
-        <div className="flex bg-white/90 shadow-lg rounded-full px-3 sm:px-4 py-3 sm:py-2 gap-3 sm:gap-6 border border-gray-200 items-center backdrop-blur-md transition-all justify-center">
+        <div className="flex bg-base-100/90 shadow-lg rounded-full px-3 sm:px-4 py-3 sm:py-2 gap-3 sm:gap-6 border border-base-300 items-center backdrop-blur-md transition-all justify-center">
           {medecinNavItems.map((item) => (
             <Link
               key={item.href}
@@ -57,7 +57,7 @@ const BottomNavBar = () => {
     <nav className={`fixed bottom-4 left-1/2 -translate-x-1/2 z-50 w-[98vw] sm:w-auto transition-all duration-300 ease-in-out ${
       isVisible ? 'translate-y-0 opacity-100' : 'translate-y-full opacity-0'
     }`}>
-      <div className="flex bg-white/90 shadow-lg rounded-full px-3 sm:px-4 py-3 sm:py-2 gap-3 sm:gap-6 border border-gray-200 items-center backdrop-blur-md transition-all justify-center">
+              <div className="flex bg-base-100/90 shadow-lg rounded-full px-3 sm:px-4 py-3 sm:py-2 gap-3 sm:gap-6 border border-base-300 items-center backdrop-blur-md transition-all justify-center">
         {patientNavItems.map((item) => (
           <Link
             key={item.href}

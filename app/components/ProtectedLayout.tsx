@@ -38,17 +38,17 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
   
   if (!user) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
+      <div className="min-h-screen flex items-center justify-center bg-base-100">
         <div className="text-center space-y-4">
-          <h2 className="text-xl font-semibold text-gray-800">Accès non autorisé</h2>
-          <p className="text-gray-600">Veuillez vous connecter pour accéder à cette page.</p>
+          <h2 className="text-xl font-semibold text-base-content">Accès non autorisé</h2>
+          <p className="text-base-content/70">Veuillez vous connecter pour accéder à cette page.</p>
         </div>
       </div>
     );
   }
   
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+    <div className="min-h-screen bg-base-100">
       <Header />
       <main className="pt-24 pb-20 px-4">
         {children}
@@ -59,7 +59,7 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
         onClick={() => setSidebarOpen(true)}
       />
       <MessageSidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)}>
-        {/* Ici viendra la logique d’affichage des messages */}
+        {/* Ici viendra la logique d'affichage des messages */}
         <div style={{padding: 16, color: '#888'}}>Sélectionnez un contact ou commencez une conversation.</div>
       </MessageSidebar>
     </div>

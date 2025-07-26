@@ -11,11 +11,11 @@ export default function MessageFloatingButton({ hasNewMessage, onClick }: Messag
       onClick={onClick}
       style={{
         position: 'fixed',
-        bottom: 24,
-        right: 24,
+        bottom: 16,
+        right: 4,
         zIndex: 1000,
-        width: 56,
-        height: 56,
+        width: 52,
+        height: 52,
         borderRadius: '50%',
         background: hasNewMessage ? 'rgba(255, 255, 255, 0.95)' : 'rgba(255, 255, 255, 0.7)',
         boxShadow: hasNewMessage 
@@ -45,13 +45,13 @@ export default function MessageFloatingButton({ hasNewMessage, onClick }: Messag
       aria-label="Messagerie"
     >
       <svg 
-        width="28" 
-        height="28" 
+        width="24" 
+        height="24" 
         fill="none" 
         viewBox="0 0 24 24" 
         stroke="currentColor" 
         style={{ 
-          maxWidth: 28, 
+          maxWidth: 24, 
           minWidth: 0, 
           overflow: 'hidden',
           color: hasNewMessage ? '#1e40af' : '#6b7280',
@@ -63,14 +63,14 @@ export default function MessageFloatingButton({ hasNewMessage, onClick }: Messag
       {hasNewMessage && (
         <span style={{
           position: 'absolute',
-          top: 10,
-          right: 10,
-          width: 12,
-          height: 12,
+          top: 8,
+          right: 8,
+          width: 10,
+          height: 10,
           background: '#22c55e', // vert
           borderRadius: '50%',
           border: '2px solid #fff',
-          maxWidth: 12,
+          maxWidth: 10,
           minWidth: 0,
           overflow: 'hidden',
           animation: 'pulse 2s infinite',

@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
-
+import ThemeInitializer from "@/components/ThemeInitializer";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -69,6 +69,7 @@ export default function RootLayout({
         <meta name="theme-color" content="#3b82f6" />
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased bg-base-100 text-base-content w-full min-h-screen overflow-x-hidden`}>
+        <ThemeInitializer />
         {children}
         <Toaster />
       </body>

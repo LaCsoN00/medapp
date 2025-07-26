@@ -1,11 +1,10 @@
-import { MapPin, Navigation, Phone, Clock, Star, Share2, Copy, Settings, Mail, ChevronDown, ChevronUp } from 'lucide-react';
+import { MapPin, Navigation, Phone, Clock, Star, Share2, Copy, Mail, ChevronDown, ChevronUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useAuth } from '../../hooks/useAuth';
-import Link from 'next/link';
 import { useToast } from '@/hooks/use-toast';
 import { useEffect, useState, useRef } from 'react';
 import { getMedecinByUserId } from '@/actions';
@@ -244,27 +243,13 @@ const LocationSection = () => {
     // Actions rapides médecin
     const quickActionsMedecin = [
       { icon: <Copy className="w-4 h-4" />, text: "Copier l'adresse", color: 'btn-primary', onClick: handleCopyAddress },
-      { icon: <Share2 className="w-4 h-4" />, text: 'Partager mon cabinet', color: 'btn-secondary', onClick: handleShare },
-      { icon: <Settings className="w-4 h-4" />, text: 'Paramètres', color: 'btn-outline', onClick: () => window.location.href = '/medecin/settings' },
+      { icon: <Share2 className="w-4 h-4" />, text: 'Partager mon cabinet', color: 'btn-primary', onClick: handleShare },
     ];
 
     return (
       <section className="section-padding bg-base-100">
         <div className="container">
-          {/* Header médecin en haut */}
-          <div className="flex flex-col items-center gap-2 mb-8">
-            <Avatar className="w-20 h-20 shadow-lg border-4 border-primary/30">
-              {medecin.photo ? (
-                <AvatarImage src={medecin.photo} alt="Photo de profil" />
-              ) : (
-                <AvatarFallback className="bg-primary text-primary-content text-3xl font-bold">
-                  {medecin.firstName?.[0] || medecin.lastName?.[0] || 'M'}
-                </AvatarFallback>
-              )}
-            </Avatar>
-            <span className="font-semibold text-lg text-base-content">Dr {medecin.firstName} {medecin.lastName}</span>
-            <Badge variant="outline" className="text-xs px-3 py-1">{medecin.speciality?.name || 'Spécialité non renseignée'}</Badge>
-          </div>
+
           {/* Header Section */}
           <div className="text-center mb-8">
             <Badge variant="secondary" className="badge-lg mb-4 max-w-full break-words truncate">
@@ -452,20 +437,7 @@ const LocationSection = () => {
     return (
       <section className="section-padding bg-base-100">
         <div className="container">
-          {/* Infos patient en haut */}
-          <div className="flex flex-col items-center gap-2 mb-8">
-            <Avatar className="w-20 h-20 shadow-lg border-4 border-primary/30">
-              {user.photo ? (
-                <AvatarImage src={user.photo} alt="Photo de profil" />
-              ) : (
-                <AvatarFallback className="bg-primary text-primary-content text-3xl font-bold">
-                  {user.firstName?.[0] || user.lastName?.[0] || 'P'}
-                </AvatarFallback>
-              )}
-            </Avatar>
-            <span className="font-semibold text-lg text-base-content">{user.firstName} {user.lastName}</span>
-            <Badge variant="outline" className="text-xs px-3 py-1">Patient</Badge>
-          </div>
+
 
           {/* Header Section */}
           <div className="text-center mb-8">

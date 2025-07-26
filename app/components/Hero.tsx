@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import Image from "next/image";
 import { useRouter } from 'next/navigation';
+import ThemeToggle from './ThemeToggle';
 
 const Hero = () => {
   const router = useRouter();
@@ -21,7 +22,12 @@ const Hero = () => {
   ];
 
   return (
-    <section className="section-padding bg-gradient-to-br from-base-100 to-base-200 min-h-screen flex items-center">
+    <section className="section-padding bg-gradient-to-br from-base-100 to-base-200 min-h-screen flex items-center relative">
+      {/* Header avec toggle de thème */}
+      <div className="absolute top-4 left-4 z-50">
+        <ThemeToggle />
+      </div>
+      
       <div className="container">
         <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
           {/* Image - First on mobile, right on desktop */}
@@ -99,25 +105,30 @@ const Hero = () => {
             <div className="flex flex-col sm:flex-row gap-4">
               <Button 
                 size="lg" 
-                className="btn btn-primary btn-lg" 
-                onClick={() => router.push('/login')}
+                className="btn btn-primary"
+                onClick={() => router.push('/register')}
               >
                 Commencer maintenant
-                <ArrowRight className="w-5 h-5 ml-2" />
+                <ArrowRight className="w-4 h-4 ml-2" />
+              </Button>
+              <Button 
+                size="lg" 
+                variant="outline"
+                onClick={() => router.push('/login')}
+              >
+                Se connecter
               </Button>
             </div>
 
             {/* Stats */}
-            <div className="grid grid-cols-3 gap-6 pt-8">
+            <div className="grid grid-cols-3 gap-4 pt-8">
               {stats.map((stat, index) => (
-                <div key={index} className="card bg-base-100 shadow-md hover:shadow-lg transition-shadow">
-                  <div className="card-body items-center text-center p-4">
-                    <div className="text-primary mb-2">
-                      {stat.icon}
-                    </div>
-                    <div className="text-2xl font-bold text-base-content">{stat.value}</div>
-                    <div className="text-sm text-base-content/70 font-medium">{stat.label}</div>
+                <div key={index} className="text-center">
+                  <div className="flex items-center justify-center mb-2 text-primary">
+                    {stat.icon}
                   </div>
+                  <div className="text-2xl font-bold text-base-content">{stat.value}</div>
+                  <div className="text-sm text-base-content/70">{stat.label}</div>
                 </div>
               ))}
             </div>

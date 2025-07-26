@@ -31,10 +31,10 @@ const DashboardPage = () => {
 
   return (
     <ProtectedLayout>
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
+      <div className="min-h-screen bg-base-100 flex items-center justify-center">
         <div className="text-center">
-          <div className="loading loading-spinner loading-lg"></div>
-          <p className="mt-4 text-gray-600">Redirection vers votre tableau de bord...</p>
+          <div className="loading loading-spinner loading-lg text-primary"></div>
+          <p className="mt-4 text-base-content/70">Redirection vers votre tableau de bord...</p>
         </div>
       </div>
     </ProtectedLayout>

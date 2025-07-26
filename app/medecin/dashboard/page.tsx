@@ -357,7 +357,7 @@ const MedecinDashboard = () => {
     return (
       <ProtectedLayout>
         <div className="max-w-2xl mx-auto text-center py-20">
-          <div className="bg-yellow-100 border border-yellow-400 text-yellow-700 px-6 py-8 rounded-lg">
+          <div className="bg-warning/10 border border-warning/20 text-warning-content px-6 py-8 rounded-lg">
             <h3 className="text-xl font-bold mb-4">Profil médecin non trouvé</h3>
             <p className="mb-6">
               Votre profil médecin n&apos;a pas encore été créé. Veuillez créer votre profil pour accéder au tableau de bord.
@@ -425,19 +425,19 @@ const MedecinDashboard = () => {
                 <div className="flex items-center gap-4">
                   <div className="flex items-center gap-3">
                     {status === 'AVAILABLE' ? (
-                      <div className="flex items-center gap-3 bg-green-100 border border-green-200 rounded-full px-6 py-3">
-                        <CheckCircle className="w-6 h-6 text-green-600" />
-                        <span className="text-green-800 font-semibold text-lg">Disponible</span>
+                      <div className="flex items-center gap-3 bg-success/10 border border-success/20 rounded-full px-6 py-3">
+                        <CheckCircle className="w-6 h-6 text-success" />
+                        <span className="text-success-content font-semibold text-lg">Disponible</span>
                       </div>
                     ) : status === 'BUSY' ? (
-                      <div className="flex items-center gap-3 bg-orange-100 border border-orange-200 rounded-full px-6 py-3">
-                        <ClockIcon className="w-6 h-6 text-orange-600" />
-                        <span className="text-orange-800 font-semibold text-lg">Occupé</span>
+                      <div className="flex items-center gap-3 bg-warning/10 border border-warning/20 rounded-full px-6 py-3">
+                        <ClockIcon className="w-6 h-6 text-warning" />
+                        <span className="text-warning-content font-semibold text-lg">Occupé</span>
                       </div>
                     ) : (
-                      <div className="flex items-center gap-3 bg-red-100 border border-red-200 rounded-full px-6 py-3">
-                        <XCircle className="w-6 h-6 text-red-600" />
-                        <span className="text-red-800 font-semibold text-lg">Indisponible</span>
+                      <div className="flex items-center gap-3 bg-error/10 border border-error/20 rounded-full px-6 py-3">
+                        <XCircle className="w-6 h-6 text-error" />
+                        <span className="text-error-content font-semibold text-lg">Indisponible</span>
                       </div>
                     )}
                   </div>
@@ -452,7 +452,7 @@ const MedecinDashboard = () => {
                     size="sm" 
                     disabled={statusLoading || (status === 'AVAILABLE' && statusMode === 'MANUAL')} 
                     onClick={() => handleStatusChange('AVAILABLE', 'MANUAL')}
-                    className="flex items-center gap-2 bg-green-500 hover:bg-green-600 text-white"
+                    className="flex items-center gap-2 bg-success hover:bg-success-focus text-success-content"
                   >
                     <CheckCircle className="w-4 h-4" />
                     Disponible
@@ -461,7 +461,7 @@ const MedecinDashboard = () => {
                     size="sm" 
                     disabled={statusLoading || (status === 'BUSY' && statusMode === 'MANUAL')} 
                     onClick={() => handleStatusChange('BUSY', 'MANUAL')}
-                    className="flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white"
+                    className="flex items-center gap-2 bg-warning hover:bg-warning-focus text-warning-content"
                   >
                     <ClockIcon className="w-4 h-4" />
                     Occupé
@@ -470,7 +470,7 @@ const MedecinDashboard = () => {
                     size="sm" 
                     disabled={statusLoading || (status === 'UNAVAILABLE' && statusMode === 'MANUAL')} 
                     onClick={() => handleStatusChange('UNAVAILABLE', 'MANUAL')}
-                    className="flex items-center gap-2 bg-red-500 hover:bg-red-600 text-white"
+                    className="flex items-center gap-2 bg-error hover:bg-error-focus text-error-content"
                   >
                     <XCircle className="w-4 h-4" />
                     Indisponible
@@ -492,26 +492,26 @@ const MedecinDashboard = () => {
               <div className="md:hidden mb-4">
                 <div className="flex items-center justify-center mb-3">
                   {status === 'AVAILABLE' ? (
-                    <div className="flex items-center gap-2 bg-green-100 border border-green-200 rounded-full px-4 py-2">
-                      <CheckCircle className="w-5 h-5 text-green-600" />
-                      <span className="text-green-800 font-semibold">Disponible</span>
+                    <div className="flex items-center gap-2 bg-success/10 border border-success/20 rounded-full px-4 py-2">
+                      <CheckCircle className="w-5 h-5 text-success" />
+                      <span className="text-success-content font-semibold">Disponible</span>
                     </div>
                   ) : status === 'BUSY' ? (
-                    <div className="flex items-center gap-2 bg-orange-100 border border-orange-200 rounded-full px-4 py-2">
-                      <ClockIcon className="w-5 h-5 text-orange-600" />
-                      <span className="text-orange-800 font-semibold">Occupé</span>
+                    <div className="flex items-center gap-2 bg-warning/10 border border-warning/20 rounded-full px-4 py-2">
+                      <ClockIcon className="w-5 h-5 text-warning" />
+                      <span className="text-warning-content font-semibold">Occupé</span>
                     </div>
                   ) : (
-                    <div className="flex items-center gap-2 bg-red-100 border border-red-200 rounded-full px-4 py-2">
-                      <XCircle className="w-5 h-5 text-red-600" />
-                      <span className="text-red-800 font-semibold">Indisponible</span>
+                    <div className="flex items-center gap-2 bg-error/10 border border-error/20 rounded-full px-4 py-2">
+                      <XCircle className="w-5 h-5 text-error" />
+                      <span className="text-error-content font-semibold">Indisponible</span>
                     </div>
                   )}
                 </div>
                 
                 <div className="flex items-center justify-center gap-2 mb-3">
-                  <Settings className="w-4 h-4 text-gray-500" />
-                  <span className="text-gray-600 text-sm">Mode : {statusMode === 'AUTO' ? 'Automatique' : 'Manuel'}</span>
+                  <Settings className="w-4 h-4 text-base-content/60" />
+                  <span className="text-base-content/70 text-sm">Mode : {statusMode === 'AUTO' ? 'Automatique' : 'Manuel'}</span>
                 </div>
               </div>
 
@@ -522,7 +522,7 @@ const MedecinDashboard = () => {
                     size="sm" 
                     disabled={statusLoading || (status === 'AVAILABLE' && statusMode === 'MANUAL')} 
                     onClick={() => handleStatusChange('AVAILABLE', 'MANUAL')}
-                    className="flex items-center justify-center gap-2 bg-green-500 hover:bg-green-600 text-white h-12"
+                    className="flex items-center justify-center gap-2 bg-success hover:bg-success-focus text-success-content h-12"
                   >
                     <CheckCircle className="w-5 h-5" />
                     <span className="text-sm">Disponible</span>
@@ -531,7 +531,7 @@ const MedecinDashboard = () => {
                     size="sm" 
                     disabled={statusLoading || (status === 'BUSY' && statusMode === 'MANUAL')} 
                     onClick={() => handleStatusChange('BUSY', 'MANUAL')}
-                    className="flex items-center justify-center gap-2 bg-orange-500 hover:bg-orange-600 text-white h-12"
+                    className="flex items-center justify-center gap-2 bg-warning hover:bg-warning-focus text-warning-content h-12"
                   >
                     <ClockIcon className="w-5 h-5" />
                     <span className="text-sm">Occupé</span>
@@ -542,7 +542,7 @@ const MedecinDashboard = () => {
                     size="sm" 
                     disabled={statusLoading || (status === 'UNAVAILABLE' && statusMode === 'MANUAL')} 
                     onClick={() => handleStatusChange('UNAVAILABLE', 'MANUAL')}
-                    className="flex items-center justify-center gap-2 bg-red-500 hover:bg-red-600 text-white h-12"
+                    className="flex items-center justify-center gap-2 bg-error hover:bg-error-focus text-error-content h-12"
                   >
                     <XCircle className="w-5 h-5" />
                     <span className="text-sm">Indisponible</span>
@@ -815,7 +815,7 @@ const MedecinDashboard = () => {
                     <input type="text" className="input input-bordered w-full" placeholder="Vacances, Congé, ..." value={exceptionEdit.reason} onChange={e => setExceptionEdit({...exceptionEdit, reason: e.target.value})} />
                   </div>
                   <div className="flex items-end">
-                    <Button className="btn btn-error w-full md:w-auto" onClick={handleAddException}>
+                    <Button className="btn btn-primary w-full md:w-auto" onClick={handleAddException}>
                       <Plus className="w-4 h-4 mr-1 hidden md:inline" />
                       Ajouter
                     </Button>

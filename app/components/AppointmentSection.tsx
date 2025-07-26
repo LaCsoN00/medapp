@@ -521,7 +521,7 @@ const AppointmentSection = () => {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               {doctorAppointments.map((appointment) => (
-                <Card key={appointment.id} className="card bg-white shadow-xl rounded-2xl border border-base-200 hover:shadow-2xl transition-all duration-200">
+                <Card key={appointment.id} className="card bg-base-100 shadow-xl rounded-2xl border border-base-300 hover:shadow-2xl transition-all duration-200">
                   <CardContent className="p-6">
                     <div className="flex items-center gap-4 mb-4">
                       <Avatar className="w-14 h-14 shadow-md">
@@ -865,7 +865,7 @@ const AppointmentSection = () => {
         {/* Modal de réservation */}
         {isBookingModalOpen && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto border border-base-200 relative animate-fade-in px-0 sm:px-2">
+                          <div className="bg-base-100 rounded-2xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto border border-base-300 relative animate-fade-in px-0 sm:px-2">
               {/* Header */}
               <div className="flex items-center justify-between p-6 border-b border-base-200 bg-base-100 rounded-t-2xl">
                 <h3 className="text-xl font-bold flex items-center gap-2 text-primary">

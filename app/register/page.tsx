@@ -274,7 +274,7 @@ const RegisterPage = () => {
                       <SelectTrigger className="mt-1 h-8 break-words max-w-full">
                         <SelectValue placeholder="Choisir une spécialité" />
                       </SelectTrigger>
-                      <SelectContent className="bg-white border border-gray-300 shadow-lg break-words max-w-full">
+                      <SelectContent className="bg-base-100 border border-base-300 shadow-lg break-words max-w-full">
                         {specialities.map((speciality) => (
                           <SelectItem key={speciality.id} value={speciality.id.toString()} className="break-words max-w-full">
                             <div className="flex items-center gap-2 break-words max-w-full">

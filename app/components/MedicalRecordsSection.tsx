@@ -521,7 +521,7 @@ const MedicalRecordsSection = () => {
                       {/* Bouton Exporter supprimé */}
                     </CardTitle>
                   </CardHeader>
-                  <CardContent ref={consultationsRef} className="bg-white" style={{background: '#fff'}}>
+                  <CardContent ref={consultationsRef} className="bg-base-100">
                     {loadingData ? (
                       <div className="text-center py-8 text-base-content/70">Chargement...</div>
                     ) : consultations.length === 0 ? (
@@ -589,7 +589,7 @@ const MedicalRecordsSection = () => {
                       {/* Bouton Exporter supprimé */}
                     </CardTitle>
                   </CardHeader>
-                  <CardContent ref={prescriptionsRef} className="bg-white" style={{background: '#fff'}}>
+                  <CardContent ref={prescriptionsRef} className="bg-base-100">
                     {loadingData ? (
                       <div className="text-center py-8 text-base-content/70">Chargement...</div>
                     ) : prescriptions.length === 0 ? (
@@ -679,14 +679,14 @@ const MedicalRecordsSection = () => {
                       {/* Bouton Exporter supprimé */}
                     </CardTitle>
                   </CardHeader>
-                  <CardContent ref={healthDataRef} className="bg-white" style={{background: '#fff'}}>
+                  <CardContent ref={healthDataRef} className="bg-base-100">
                     {/* Formulaire d'ajout */}
                     <Button className="btn btn-primary rounded-full mb-6" onClick={() => setShowHealthModal(true)}>
                       Ajouter une donnée
                     </Button>
                     {showHealthModal && (
                       <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-                        <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto border border-base-200 relative animate-fade-in">
+                        <div className="bg-base-100 rounded-2xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto border border-base-300 relative animate-fade-in">
                           <div className="flex items-center justify-between p-6 border-b border-base-200 bg-base-100 rounded-t-2xl">
                             <h3 className="text-xl font-bold flex items-center gap-2 text-primary">
                               <Activity className="w-6 h-6 text-primary" />
@@ -807,7 +807,7 @@ const MedicalRecordsSection = () => {
       {showPrescriptionModal && selectedPrescription && (
         <Dialog open={showPrescriptionModal} onOpenChange={setShowPrescriptionModal}>
           <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center">
-            <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full relative animate-fade-in border border-base-200">
+            <div className="bg-base-100 rounded-2xl shadow-2xl max-w-2xl w-full relative animate-fade-in border border-base-300">
               {/* Header coloré avec icône */}
               <div className="flex items-center gap-3 p-8 rounded-t-2xl bg-gradient-to-r from-primary to-secondary text-white">
                 <FileText className="w-8 h-8" />
@@ -860,7 +860,7 @@ const MedicalRecordsSection = () => {
       {showConsultationModal && selectedConsultation && (
         <Dialog open={showConsultationModal} onOpenChange={setShowConsultationModal}>
           <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center">
-            <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full relative animate-fade-in border border-base-200">
+            <div className="bg-base-100 rounded-2xl shadow-2xl max-w-2xl w-full relative animate-fade-in border border-base-300">
               <div className="flex items-center gap-3 p-8 rounded-t-2xl bg-gradient-to-r from-primary to-secondary text-white">
                 <Calendar className="w-8 h-8" />
                 <h2 className="text-3xl font-bold flex-1">Détails de la consultation</h2>

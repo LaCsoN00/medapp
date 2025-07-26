@@ -118,7 +118,7 @@ export default function AuthForm() {
 
   return (
     <div className="w-full max-w-md animate-fade-in-up">
-      <div className="bg-white/90 rounded-2xl shadow-2xl px-8 py-10 flex flex-col items-center relative overflow-hidden">
+      <div className="bg-base-100/90 rounded-2xl shadow-2xl px-8 py-10 flex flex-col items-center relative overflow-hidden">
         <div className="flex flex-col items-center mb-6">
           <div className="bg-gradient-to-tr from-blue-400 to-pink-400 p-4 rounded-full shadow-lg animate-bounce mb-2">
             <FaHeartbeat className="text-3xl text-white animate-pulse" />
@@ -128,7 +128,7 @@ export default function AuthForm() {
         </div>
         <form onSubmit={handleSubmit} className="space-y-4 w-full">
           <input
-            className="w-full border-2 border-gray-200 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-400 transition-all duration-200 shadow-sm bg-white/80"
+            className="w-full border-2 border-base-300 rounded-lg px-4 py-2 focus:outline-none focus:border-primary transition-all duration-200 shadow-sm bg-base-100/80"
             type="email"
             name="email"
             placeholder="Email"
@@ -138,7 +138,7 @@ export default function AuthForm() {
             autoComplete="username"
           />
           <input
-            className="w-full border-2 border-gray-200 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-400 transition-all duration-200 shadow-sm bg-white/80"
+            className="w-full border-2 border-base-300 rounded-lg px-4 py-2 focus:outline-none focus:border-primary transition-all duration-200 shadow-sm bg-base-100/80"
             type="password"
             name="password"
             placeholder="Mot de passe"
@@ -151,7 +151,7 @@ export default function AuthForm() {
             <>
               <div className="flex gap-2">
                 <input
-                  className="w-1/2 border-2 border-gray-200 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-400 transition-all duration-200 shadow-sm bg-white/80"
+                  className="w-1/2 border-2 border-base-300 rounded-lg px-4 py-2 focus:outline-none focus:border-primary transition-all duration-200 shadow-sm bg-base-100/80"
                   type="text"
                   name="firstName"
                   placeholder="Prénom"
@@ -160,7 +160,7 @@ export default function AuthForm() {
                   required
                 />
                 <input
-                  className="w-1/2 border-2 border-gray-200 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-400 transition-all duration-200 shadow-sm bg-white/80"
+                  className="w-1/2 border-2 border-base-300 rounded-lg px-4 py-2 focus:outline-none focus:border-primary transition-all duration-200 shadow-sm bg-base-100/80"
                   type="text"
                   name="lastName"
                   placeholder="Nom"
@@ -171,7 +171,7 @@ export default function AuthForm() {
               </div>
               {form.role === "PATIENT" && (
                 <input
-                  className="w-full border-2 border-gray-200 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-400 transition-all duration-200 shadow-sm bg-white/80"
+                  className="w-full border-2 border-base-300 rounded-lg px-4 py-2 focus:outline-none focus:border-primary transition-all duration-200 shadow-sm bg-base-100/80"
                   type="tel"
                   name="phone"
                   placeholder="Téléphone"
@@ -183,7 +183,7 @@ export default function AuthForm() {
                 />
               )}
               <select
-                className="w-full border-2 border-gray-200 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-400 transition-all duration-200 shadow-sm bg-white/80"
+                className="w-full border-2 border-base-300 rounded-lg px-4 py-2 focus:outline-none focus:border-primary transition-all duration-200 shadow-sm bg-base-100/80"
                 name="role"
                 value={form.role}
                 onChange={handleChange}
@@ -195,7 +195,7 @@ export default function AuthForm() {
               </select>
               {(form.role === "MEDECIN" || form.role === "DOCTEUR") && (
                 <input
-                  className="w-full border-2 border-gray-200 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-400 transition-all duration-200 shadow-sm bg-white/80"
+                  className="w-full border-2 border-base-300 rounded-lg px-4 py-2 focus:outline-none focus:border-primary transition-all duration-200 shadow-sm bg-base-100/80"
                   type="text"
                   name="specialty"
                   placeholder="Spécialité (pour les médecins)"
