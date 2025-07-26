@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getPatientByUserId } from '@/actions';
 import jwt from 'jsonwebtoken';
+import { PrismaClient } from '@prisma/client';
 
+const prisma = new PrismaClient();
 const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret';
 
 function verifyToken(token: string) {
@@ -30,8 +31,23 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ success: false, error: 'Accès non autorisé' }, { status: 403 });
     }
 
-    // Récupérer les informations du patient
-    const patient = await getPatientByUserId(decoded.id);
+    // Récupérer les informations du patient avec ses rendez-vous
+    const patient = await prisma.patient.findUnique({
+      where: { userId: decoded.id },
+      include: {
+        appointments: {
+          include: {
+            medecin: {
+              include: {
+                user: true,
+                speciality: true
+              }
+            }
+          }
+        }
+      }
+    });
+
     if (!patient) {
       return NextResponse.json({ success: false, error: 'Patient non trouvé' }, { status: 404 });
     }
@@ -44,7 +60,8 @@ export async function GET(request: NextRequest) {
         lastName: patient.lastName,
         email: patient.email,
         phone: patient.phone,
-        photo: patient.photo
+        photo: patient.photo,
+        appointments: patient.appointments
       }
     });
 

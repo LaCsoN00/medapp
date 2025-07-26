@@ -156,260 +156,262 @@ const RegisterPage = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4 w-full">
-      <div className="w-full max-w-md">
-        <Card className="card bg-base-100 shadow-xl max-w-full">
-          <CardHeader className="text-center pb-3 break-words max-w-full">
-            <div className="mx-auto w-10 h-10 bg-primary rounded-full flex items-center justify-center mb-2">
-              <Shield className="w-5 h-5 text-primary-content" />
-            </div>
-            <CardTitle className="text-lg font-bold text-base-content break-words max-w-full truncate">
-              Inscription
-            </CardTitle>
-            <p className="text-xs text-base-content/70 break-words max-w-full">
-              Créez votre compte Gabon Santé Digital
-            </p>
-          </CardHeader>
-          
-          <CardContent className="space-y-3 break-words max-w-full">
-            <form onSubmit={handleSubmit} className="space-y-3 break-words max-w-full">
-              {/* Sélection du rôle */}
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-base-content break-words max-w-full">
-                  Je suis un :
-                </label>
-                <div className="grid grid-cols-2 gap-2 w-full">
-                  {roleOptions.map((option) => (
-                    <button
-                      key={option.value}
-                      type="button"
-                      onClick={() => handleInputChange('role', option.value)}
-                      className={`p-3 border-2 rounded-lg text-center transition-all break-words max-w-full ${
-                        formData.role === option.value
-                          ? 'border-primary bg-primary/5'
-                          : 'border-base-300 hover:border-primary/50'
-                      }`}
-                    >
-                      <div className="flex flex-col items-center gap-1 break-words max-w-full">
-                        <option.icon className={`w-5 h-5 ${option.color}`} />
-                        <span className="text-sm font-medium text-base-content break-words max-w-full">
-                          {option.label}
-                        </span>
+    <div className="max-w-6xl mx-auto pt-24 pb-20 w-full px-2 sm:px-4">
+      <div className="min-h-screen bg-base-100 flex items-center justify-center p-4 w-full">
+        <div className="w-full max-w-md">
+          <Card className="card bg-base-100 shadow-xl max-w-full">
+            <CardHeader className="text-center pb-3 break-words max-w-full">
+              <div className="mx-auto w-10 h-10 bg-primary rounded-full flex items-center justify-center mb-2">
+                <Shield className="w-5 h-5 text-primary-content" />
+              </div>
+              <CardTitle className="text-lg font-bold text-base-content break-words max-w-full truncate">
+                Inscription
+              </CardTitle>
+              <p className="text-xs text-base-content/70 break-words max-w-full">
+                Créez votre compte Gabon Santé Digital
+              </p>
+            </CardHeader>
+            
+            <CardContent className="space-y-3 break-words max-w-full">
+              <form onSubmit={handleSubmit} className="space-y-3 break-words max-w-full">
+                {/* Sélection du rôle */}
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-base-content break-words max-w-full">
+                    Je suis un :
+                  </label>
+                  <div className="grid grid-cols-2 gap-2 w-full">
+                    {roleOptions.map((option) => (
+                      <button
+                        key={option.value}
+                        type="button"
+                        onClick={() => handleInputChange('role', option.value)}
+                        className={`p-3 border-2 rounded-lg text-center transition-all break-words max-w-full ${
+                          formData.role === option.value
+                            ? 'border-primary bg-primary/5'
+                            : 'border-base-300 hover:border-primary/50'
+                        }`}
+                      >
+                        <div className="flex flex-col items-center gap-1 break-words max-w-full">
+                          <option.icon className={`w-5 h-5 ${option.color}`} />
+                          <span className="text-sm font-medium text-base-content break-words max-w-full">
+                            {option.label}
+                          </span>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Informations de base */}
+                <div className="grid grid-cols-2 gap-3 w-full">
+                  <div>
+                    <label className="text-xs font-medium text-base-content break-words max-w-full">
+                      Prénom *
+                    </label>
+                    <Input
+                      type="text"
+                      placeholder="Prénom"
+                      value={formData.firstName}
+                      onChange={(e) => handleInputChange('firstName', e.target.value)}
+                      className="mt-1 h-8 break-words max-w-full"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs font-medium text-base-content break-words max-w-full">
+                      Nom *
+                    </label>
+                    <Input
+                      type="text"
+                      placeholder="Nom"
+                      value={formData.lastName}
+                      onChange={(e) => handleInputChange('lastName', e.target.value)}
+                      className="mt-1 h-8 break-words max-w-full"
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-xs font-medium text-base-content break-words max-w-full">
+                    Email *
+                  </label>
+                  <Input
+                    type="email"
+                    placeholder="votre@email.com"
+                    value={formData.email}
+                    onChange={(e) => handleInputChange('email', e.target.value)}
+                    className="mt-1 h-8 break-words max-w-full"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="text-xs font-medium text-base-content break-words max-w-full">
+                    Téléphone
+                  </label>
+                  <Input
+                    type="tel"
+                    placeholder="+241 01 23 45 67"
+                    value={formData.phone}
+                    onChange={(e) => handleInputChange('phone', e.target.value)}
+                    className="mt-1 h-8 break-words max-w-full"
+                    pattern="[0-9\s\-\(\)\+]*"
+                    title="Seuls les chiffres, espaces, tirets, parenthèses et + sont autorisés"
+                  />
+                  <p className="text-xs text-base-content/50 mt-1 break-words max-w-full">
+                    Format: +241 01 23 45 67 ou 01 23 45 67
+                  </p>
+                </div>
+
+                {/* Champs spécifiques au médecin */}
+                {formData.role === 'MEDECIN' && (
+                  <>
+                    <div>
+                      <label className="text-xs font-medium text-base-content break-words max-w-full">
+                        Spécialité *
+                      </label>
+                      <Select value={formData.specialityId} onValueChange={(value: string) => handleInputChange('specialityId', value)}>
+                        <SelectTrigger className="mt-1 h-8 break-words max-w-full">
+                          <SelectValue placeholder="Choisir une spécialité" />
+                        </SelectTrigger>
+                        <SelectContent className="bg-base-100 border border-base-300 shadow-lg break-words max-w-full">
+                          {specialities.map((speciality) => (
+                            <SelectItem key={speciality.id} value={speciality.id.toString()} className="break-words max-w-full">
+                              <div className="flex items-center gap-2 break-words max-w-full">
+                                <span>{speciality.icon}</span>
+                                <span>{speciality.name}</span>
+                              </div>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3 w-full">
+                      <div>
+                        <label className="text-xs font-medium text-base-content break-words max-w-full">
+                          Ville
+                        </label>
+                        <Input
+                          type="text"
+                          placeholder="Libreville"
+                          value={formData.city}
+                          onChange={(e) => handleInputChange('city', e.target.value)}
+                          className="mt-1 h-8 break-words max-w-full"
+                        />
                       </div>
-                    </button>
-                  ))}
-                </div>
-              </div>
+                      <div>
+                        <label className="text-xs font-medium text-base-content break-words max-w-full">
+                          Expérience
+                        </label>
+                        <Input
+                          type="text"
+                          placeholder="5"
+                          value={formData.experience}
+                          onChange={(e) => handleInputChange('experience', e.target.value)}
+                          className="mt-1 h-8 break-words max-w-full"
+                          pattern="[0-9\s]*"
+                          title="Seuls les chiffres et espaces sont autorisés"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="text-xs font-medium text-base-content break-words max-w-full">
+                        Adresse
+                      </label>
+                      <Input
+                        type="text"
+                        placeholder="123 Avenue de la Paix"
+                        value={formData.address}
+                        onChange={(e) => handleInputChange('address', e.target.value)}
+                        className="mt-1 h-8 break-words max-w-full"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs font-medium text-base-content break-words max-w-full">
+                        Langues parlées
+                      </label>
+                      <Input
+                        type="text"
+                        placeholder="Français, Anglais"
+                        value={formData.languages}
+                        onChange={(e) => handleInputChange('languages', e.target.value)}
+                        className="mt-1 h-8 break-words max-w-full"
+                      />
+                      <p className="text-xs text-base-content/50 mt-1 break-words max-w-full">
+                        Exemple: Français, Anglais, Espagnol
+                      </p>
+                    </div>
+                  </>
+                )}
 
-              {/* Informations de base */}
-              <div className="grid grid-cols-2 gap-3 w-full">
-                <div>
-                  <label className="text-xs font-medium text-base-content break-words max-w-full">
-                    Prénom *
-                  </label>
-                  <Input
-                    type="text"
-                    placeholder="Prénom"
-                    value={formData.firstName}
-                    onChange={(e) => handleInputChange('firstName', e.target.value)}
-                    className="mt-1 h-8 break-words max-w-full"
-                    required
-                  />
+                {/* Mots de passe */}
+                <div className="grid grid-cols-2 gap-3 w-full">
+                  <div>
+                    <label className="text-xs font-medium text-base-content break-words max-w-full">
+                      Mot de passe *
+                    </label>
+                    <Input
+                      type="password"
+                      placeholder="••••••"
+                      value={formData.password}
+                      onChange={(e) => handleInputChange('password', e.target.value)}
+                      className="mt-1 h-8 break-words max-w-full"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs font-medium text-base-content break-words max-w-full">
+                      Confirmer *
+                    </label>
+                    <Input
+                      type="password"
+                      placeholder="••••••"
+                      value={formData.confirmPassword}
+                      onChange={(e) => handleInputChange('confirmPassword', e.target.value)}
+                      className="mt-1 h-8 break-words max-w-full"
+                      required
+                    />
+                  </div>
                 </div>
-                <div>
-                  <label className="text-xs font-medium text-base-content break-words max-w-full">
-                    Nom *
-                  </label>
-                  <Input
-                    type="text"
-                    placeholder="Nom"
-                    value={formData.lastName}
-                    onChange={(e) => handleInputChange('lastName', e.target.value)}
-                    className="mt-1 h-8 break-words max-w-full"
-                    required
-                  />
-                </div>
-              </div>
 
-              <div>
-                <label className="text-xs font-medium text-base-content break-words max-w-full">
-                  Email *
-                </label>
-                <Input
-                  type="email"
-                  placeholder="votre@email.com"
-                  value={formData.email}
-                  onChange={(e) => handleInputChange('email', e.target.value)}
-                  className="mt-1 h-8 break-words max-w-full"
-                  required
-                />
-              </div>
+                {/* Message d'erreur */}
+                {error && (
+                  <div className="p-2 bg-error/10 border border-error/20 rounded-lg break-words max-w-full">
+                    <p className="text-error text-xs break-words max-w-full">{error}</p>
+                  </div>
+                )}
 
-              <div>
-                <label className="text-xs font-medium text-base-content break-words max-w-full">
-                  Téléphone
-                </label>
-                <Input
-                  type="tel"
-                  placeholder="+241 01 23 45 67"
-                  value={formData.phone}
-                  onChange={(e) => handleInputChange('phone', e.target.value)}
-                  className="mt-1 h-8 break-words max-w-full"
-                  pattern="[0-9\s\-\(\)\+]*"
-                  title="Seuls les chiffres, espaces, tirets, parenthèses et + sont autorisés"
-                />
-                <p className="text-xs text-base-content/50 mt-1 break-words max-w-full">
-                  Format: +241 01 23 45 67 ou 01 23 45 67
+                {/* Bouton d'inscription */}
+                <Button
+                  type="submit"
+                  className="w-full h-9 break-words max-w-full"
+                  disabled={loading || !formData.role}
+                >
+                  {loading ? (
+                    <div className="loading loading-spinner loading-sm mr-2"></div>
+                  ) : (
+                    <User className="w-4 h-4 mr-2" />
+                  )}
+                  {loading ? 'Inscription...' : "S'inscrire"}
+                </Button>
+              </form>
+
+              {/* Lien de connexion */}
+              <div className="text-center pt-2 border-t border-base-300 break-words max-w-full">
+                <p className="text-xs text-base-content/70 break-words max-w-full">
+                  Déjà un compte ?{' '}
+                  <button 
+                    onClick={() => router.push('/login')}
+                    className="text-primary hover:underline font-medium break-words max-w-full"
+                  >
+                    Se connecter
+                  </button>
                 </p>
               </div>
-
-              {/* Champs spécifiques au médecin */}
-              {formData.role === 'MEDECIN' && (
-                <>
-                  <div>
-                    <label className="text-xs font-medium text-base-content break-words max-w-full">
-                      Spécialité *
-                    </label>
-                    <Select value={formData.specialityId} onValueChange={(value: string) => handleInputChange('specialityId', value)}>
-                      <SelectTrigger className="mt-1 h-8 break-words max-w-full">
-                        <SelectValue placeholder="Choisir une spécialité" />
-                      </SelectTrigger>
-                      <SelectContent className="bg-base-100 border border-base-300 shadow-lg break-words max-w-full">
-                        {specialities.map((speciality) => (
-                          <SelectItem key={speciality.id} value={speciality.id.toString()} className="break-words max-w-full">
-                            <div className="flex items-center gap-2 break-words max-w-full">
-                              <span>{speciality.icon}</span>
-                              <span>{speciality.name}</span>
-                            </div>
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="grid grid-cols-2 gap-3 w-full">
-                    <div>
-                      <label className="text-xs font-medium text-base-content break-words max-w-full">
-                        Ville
-                      </label>
-                      <Input
-                        type="text"
-                        placeholder="Libreville"
-                        value={formData.city}
-                        onChange={(e) => handleInputChange('city', e.target.value)}
-                        className="mt-1 h-8 break-words max-w-full"
-                      />
-                    </div>
-                    <div>
-                      <label className="text-xs font-medium text-base-content break-words max-w-full">
-                        Expérience
-                      </label>
-                      <Input
-                        type="text"
-                        placeholder="5"
-                        value={formData.experience}
-                        onChange={(e) => handleInputChange('experience', e.target.value)}
-                        className="mt-1 h-8 break-words max-w-full"
-                        pattern="[0-9\s]*"
-                        title="Seuls les chiffres et espaces sont autorisés"
-                      />
-                    </div>
-                  </div>
-                  <div>
-                    <label className="text-xs font-medium text-base-content break-words max-w-full">
-                      Adresse
-                    </label>
-                    <Input
-                      type="text"
-                      placeholder="123 Avenue de la Paix"
-                      value={formData.address}
-                      onChange={(e) => handleInputChange('address', e.target.value)}
-                      className="mt-1 h-8 break-words max-w-full"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-xs font-medium text-base-content break-words max-w-full">
-                      Langues parlées
-                    </label>
-                    <Input
-                      type="text"
-                      placeholder="Français, Anglais"
-                      value={formData.languages}
-                      onChange={(e) => handleInputChange('languages', e.target.value)}
-                      className="mt-1 h-8 break-words max-w-full"
-                    />
-                    <p className="text-xs text-base-content/50 mt-1 break-words max-w-full">
-                      Exemple: Français, Anglais, Espagnol
-                    </p>
-                  </div>
-                </>
-              )}
-
-              {/* Mots de passe */}
-              <div className="grid grid-cols-2 gap-3 w-full">
-                <div>
-                  <label className="text-xs font-medium text-base-content break-words max-w-full">
-                    Mot de passe *
-                  </label>
-                  <Input
-                    type="password"
-                    placeholder="••••••"
-                    value={formData.password}
-                    onChange={(e) => handleInputChange('password', e.target.value)}
-                    className="mt-1 h-8 break-words max-w-full"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="text-xs font-medium text-base-content break-words max-w-full">
-                    Confirmer *
-                  </label>
-                  <Input
-                    type="password"
-                    placeholder="••••••"
-                    value={formData.confirmPassword}
-                    onChange={(e) => handleInputChange('confirmPassword', e.target.value)}
-                    className="mt-1 h-8 break-words max-w-full"
-                    required
-                  />
-                </div>
-              </div>
-
-              {/* Message d'erreur */}
-              {error && (
-                <div className="p-2 bg-error/10 border border-error/20 rounded-lg break-words max-w-full">
-                  <p className="text-error text-xs break-words max-w-full">{error}</p>
-                </div>
-              )}
-
-              {/* Bouton d'inscription */}
-              <Button
-                type="submit"
-                className="w-full h-9 break-words max-w-full"
-                disabled={loading || !formData.role}
-              >
-                {loading ? (
-                  <div className="loading loading-spinner loading-sm mr-2"></div>
-                ) : (
-                  <User className="w-4 h-4 mr-2" />
-                )}
-                {loading ? 'Inscription...' : "S'inscrire"}
-              </Button>
-            </form>
-
-            {/* Lien de connexion */}
-            <div className="text-center pt-2 border-t border-base-300 break-words max-w-full">
-              <p className="text-xs text-base-content/70 break-words max-w-full">
-                Déjà un compte ?{' '}
-                <button 
-                  onClick={() => router.push('/login')}
-                  className="text-primary hover:underline font-medium break-words max-w-full"
-                >
-                  Se connecter
-                </button>
-              </p>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </div>
   );

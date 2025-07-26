@@ -10,7 +10,6 @@ import { useEffect, useState, useRef } from 'react';
 import { getMedecinByUserId } from '@/actions';
 import { Medecin as MedecinType, WorkingHour } from '@/types';
 import Image from 'next/image';
-import { useRouter } from 'next/navigation';
 
 // Définition du type MedicalLocation si non importé
 type MedicalLocation = {
@@ -72,6 +71,21 @@ async function subscribeToStructure(userId: number, medicalLocationId: number) {
   return res.json();
 }
 
+
+
+// Fonction utilitaire pour ouvrir les directions
+function openDirections(location: MedicalLocation) {
+  const address = encodeURIComponent(location.address);
+  const url = `https://www.google.com/maps/dir/?api=1&destination=${address}`;
+  window.open(url, '_blank');
+}
+
+// Fonction utilitaire pour appeler
+function makeCall(phone: string) {
+  const telUrl = `tel:${phone}`;
+  window.open(telUrl, '_self');
+}
+
 // Définir des services simulés par type
 const SERVICES_BY_TYPE: Record<string, string[]> = {
   hopital: [
@@ -100,7 +114,6 @@ const SERVICES_BY_TYPE: Record<string, string[]> = {
 const LocationSection = () => {
   const { user, isLoading } = useAuth();
   const { toast } = useToast();
-  const router = useRouter();
 
   // Hooks pour médecin, toujours déclarés en haut
   const [medecin, setMedecin] = useState<MedecinType | null>(null);
@@ -120,11 +133,30 @@ const LocationSection = () => {
   const [showAllClinics, setShowAllClinics] = useState(false);
 
   // Ajout des états de filtre rapide
-  const [quickFilter, setQuickFilter] = useState<'none' | 'urgences' | 'pharmacies' | 'open'>('none');
+  const [quickFilter] = useState<'none' | 'urgences' | 'pharmacies' | 'open'>('none');
 
   const hospitalsRef = useRef<HTMLDivElement>(null);
   const pharmaciesRef = useRef<HTMLDivElement>(null);
   const clinicsRef = useRef<HTMLDivElement>(null);
+
+  // Fonction utilitaire pour gérer la souscription
+  const handleSubscribe = async (structureId: number) => {
+    if (!user) return;
+    
+    try {
+      await subscribeToStructure(user.id, structureId);
+      toast({
+        title: "Souscription réussie !",
+        description: "Vous êtes maintenant abonné à cette structure.",
+      });
+    } catch {
+      toast({
+        title: "Erreur de souscription",
+        description: "Impossible de souscrire à cette structure.",
+        variant: "destructive",
+      });
+    }
+  };
 
   useEffect(() => {
     if (user && (user.role === 'MEDECIN' || user.role === 'DOCTEUR')) {
@@ -573,14 +605,14 @@ const LocationSection = () => {
                                 </div>
                               </div>
                               <div className="flex gap-2 break-words max-w-full flex-wrap">
-                                <Button className="btn btn-primary flex-1" onClick={() => router.push(`/payment/subscribe?structureId=${hospital.id}`)}>
+                                <Button className="btn btn-primary flex-1" onClick={() => handleSubscribe(hospital.id)}>
                                   Souscrire
                                 </Button>
-                                <Button className="btn btn-primary flex-1">
+                                <Button className="btn btn-primary flex-1" onClick={() => openDirections(hospital)}>
                                   <Navigation className="w-4 h-4 mr-2" />
                                   Directions
                                 </Button>
-                                <Button variant="outline" className="btn btn-outline flex-1">
+                                <Button className="btn btn-outline flex-1" onClick={() => makeCall((hospital as EnrichedMedicalLocation).phone || '')}>
                                   <Phone className="w-4 h-4 mr-2" />
                                   Appeler
                                 </Button>
@@ -651,21 +683,14 @@ const LocationSection = () => {
                                 </div>
                               </div>
                               <div className="flex gap-2 break-words max-w-full flex-wrap">
-                                <Button className="btn btn-primary flex-1" onClick={async () => {
-                                  const result = await subscribeToStructure(user.id, pharmacy.id);
-                                  toast({
-                                    title: result.success ? 'Souscription réussie' : 'Erreur',
-                                    description: result.success ? 'Vous êtes abonné à cette structure.' : (result.error || 'Erreur lors de la souscription.'),
-                                    variant: result.success ? 'default' : 'destructive',
-                                  });
-                                }}>
+                                <Button className="btn btn-primary flex-1" onClick={() => handleSubscribe(pharmacy.id)}>
                                   Souscrire
                                 </Button>
-                                <Button className="btn btn-primary flex-1">
+                                <Button className="btn btn-primary flex-1" onClick={() => openDirections(pharmacy)}>
                                   <Navigation className="w-4 h-4 mr-2" />
                                   Directions
                                 </Button>
-                                <Button variant="outline" className="btn btn-outline flex-1">
+                                <Button className="btn btn-outline flex-1" onClick={() => makeCall((pharmacy as EnrichedMedicalLocation).phone || '')}>
                                   <Phone className="w-4 h-4 mr-2" />
                                   Appeler
                                 </Button>
@@ -736,21 +761,14 @@ const LocationSection = () => {
                                 </div>
                               </div>
                               <div className="flex gap-2 break-words max-w-full flex-wrap">
-                                <Button className="btn btn-primary flex-1" onClick={async () => {
-                                  const result = await subscribeToStructure(user.id, clinic.id);
-                                  toast({
-                                    title: result.success ? 'Souscription réussie' : 'Erreur',
-                                    description: result.success ? 'Vous êtes abonné à cette structure.' : (result.error || 'Erreur lors de la souscription.'),
-                                    variant: result.success ? 'default' : 'destructive',
-                                  });
-                                }}>
+                                <Button className="btn btn-primary flex-1" onClick={() => handleSubscribe(clinic.id)}>
                                   Souscrire
                                 </Button>
-                                <Button className="btn btn-primary flex-1">
+                                <Button className="btn btn-primary flex-1" onClick={() => openDirections(clinic)}>
                                   <Navigation className="w-4 h-4 mr-2" />
                                   Directions
                                 </Button>
-                                <Button variant="outline" className="btn btn-outline flex-1">
+                                <Button className="btn btn-outline flex-1" onClick={() => makeCall((clinic as EnrichedMedicalLocation).phone || '')}>
                                   <Phone className="w-4 h-4 mr-2" />
                                   Appeler
                                 </Button>

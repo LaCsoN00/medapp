@@ -8,7 +8,7 @@ export default function MedecinProfilePage() {
   return (
     <RoleBasedRedirect allowedRoles={['MEDECIN', 'DOCTEUR']}>
       <ProtectedLayout>
-        <div className="pt-24 pb-20">
+        <div className="max-w-6xl mx-auto pt-24 pb-20 w-full px-2 sm:px-4">
           <ProfileSection />
         </div>
       </ProtectedLayout>

@@ -31,10 +31,12 @@ const DashboardPage = () => {
 
   return (
     <ProtectedLayout>
-      <div className="min-h-screen bg-base-100 flex items-center justify-center">
-        <div className="text-center">
-          <div className="loading loading-spinner loading-lg text-primary"></div>
-          <p className="mt-4 text-base-content/70">Redirection vers votre tableau de bord...</p>
+      <div className="max-w-6xl mx-auto pt-24 pb-20 w-full px-2 sm:px-4">
+        <div className="min-h-screen bg-base-100 flex items-center justify-center">
+          <div className="text-center">
+            <div className="loading loading-spinner loading-lg text-primary"></div>
+            <p className="mt-4 text-base-content/70">Redirection vers votre tableau de bord...</p>
+          </div>
         </div>
       </div>
     </ProtectedLayout>

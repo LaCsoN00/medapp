@@ -33,69 +33,71 @@ function SubscribeContent() {
   const forfait = selected !== null ? PRICES[selected] : null;
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-base-100 to-base-200 p-4 relative">
-      <h1 className="text-3xl md:text-4xl font-extrabold mb-2 text-center text-base-content">Choisissez votre forfait d&apos;abonnement</h1>
-      <p className="text-base-content/70 mb-8 text-center max-w-xl">Profitez de tous les services MedApp en toute sérénité. Choisissez la durée qui vous convient et bénéficiez d&apos;un accès sécurisé à votre structure de santé.</p>
-      <div className="w-full max-w-3xl mb-12">
-        <h2 className="text-xl font-bold mb-4 text-base-content">Services inclus dans l&apos;abonnement</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {SERVICES.map((s, i) => (
-            <div key={i} className="flex items-start gap-4 bg-base-100 rounded-lg shadow-sm p-4 border border-base-200 hover:shadow-md transition">
-              <div className="flex-shrink-0">{s.icon}</div>
-              <div>
-                <div className="font-semibold text-base-content mb-1">{s.label}</div>
-                <div className="text-base-content/70 text-sm">{s.desc}</div>
+    <div className="max-w-6xl mx-auto pt-24 pb-20 w-full px-2 sm:px-4">
+      <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-base-100 to-base-200 p-4 relative">
+        <h1 className="text-3xl md:text-4xl font-extrabold mb-2 text-center text-base-content">Choisissez votre forfait d&apos;abonnement</h1>
+        <p className="text-base-content/70 mb-8 text-center max-w-xl">Profitez de tous les services MedApp en toute sérénité. Choisissez la durée qui vous convient et bénéficiez d&apos;un accès sécurisé à votre structure de santé.</p>
+        <div className="w-full max-w-3xl mb-12">
+          <h2 className="text-xl font-bold mb-4 text-base-content">Services inclus dans l&apos;abonnement</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {SERVICES.map((s, i) => (
+              <div key={i} className="flex items-start gap-4 bg-base-100 rounded-lg shadow-sm p-4 border border-base-200 hover:shadow-md transition">
+                <div className="flex-shrink-0">{s.icon}</div>
+                <div>
+                  <div className="font-semibold text-base-content mb-1">{s.label}</div>
+                  <div className="text-base-content/70 text-sm">{s.desc}</div>
+                </div>
               </div>
-            </div>
-          ))}
-        </div>
-      </div>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8 w-full max-w-4xl mb-12">
-        {PRICES.map((f, i) => (
-          <Card
-            key={f.label}
-            className={`relative group p-8 flex flex-col items-center border-2 transition-all duration-200 cursor-pointer shadow-md hover:shadow-xl bg-gradient-to-br ${f.color} ${selected === i ? 'border-primary scale-105 ring-2 ring-primary' : 'border-base-300'} ${selected === i ? 'z-10' : ''}`}
-            onClick={() => setSelected(i)}
-            style={{ minHeight: 280 }}
-          >
-            <div className="absolute top-4 right-4">
-              {selected === i && <span className="inline-flex items-center gap-1 px-2 py-1 text-xs font-semibold rounded bg-primary text-white animate-bounce"><BadgeCheck className="w-4 h-4 mr-1" />Choisi</span>}
-            </div>
-            <div className="mb-4">{f.icon}</div>
-            <div className="text-2xl font-bold mb-2 text-base-content group-hover:text-primary transition-colors">{f.label}</div>
-            <div className="text-4xl font-extrabold mb-2 text-primary drop-shadow">{f.price.toLocaleString()} FCFA</div>
-            <div className="text-base-content/70 mb-2">{f.months} mois d&apos;accès</div>
-            {f.months === 12 && <span className="inline-block mt-2 px-3 py-1 text-xs rounded-full bg-yellow-100 text-yellow-700 font-semibold">Économisez 2 mois</span>}
-            {f.months === 6 && <span className="inline-block mt-2 px-3 py-1 text-xs rounded-full bg-green-100 text-green-700 font-semibold">Populaire</span>}
-          </Card>
-        ))}
-      </div>
-      {/* Résumé dynamique */}
-      {forfait && (
-        <div className="mb-8 w-full max-w-lg mx-auto bg-base-100 rounded-xl shadow-lg p-6 flex flex-col items-center gap-2 border border-primary/20 animate-fade-in">
-          <div className="text-lg font-semibold text-base-content mb-2">Récapitulatif</div>
-          <div className="flex items-center gap-3 text-base-content/80">
-            <span className="font-bold text-primary text-xl">{forfait.label}</span>
-            <span className="text-base-content/60">|</span>
-            <span>{forfait.months} mois</span>
-            <span className="text-base-content/60">|</span>
-            <span className="font-bold text-2xl text-primary">{forfait.price.toLocaleString()} FCFA</span>
+            ))}
           </div>
         </div>
-      )}
-      {/* Bouton sticky mobile */}
-      <div className="fixed bottom-0 left-0 w-full flex justify-center bg-gradient-to-t from-base-200/90 to-transparent py-4 z-50 md:static md:bg-none md:py-0">
-        <Button
-          className="btn btn-primary btn-lg w-full max-w-xs shadow-xl"
-          disabled={selected === null}
-          onClick={() => {
-            if (selected === null) return;
-            const forfait = PRICES[selected];
-            router.push(`/payment?structureId=${structureId}&months=${forfait.months}&amount=${forfait.price}`);
-          }}
-        >
-          Valider et payer
-        </Button>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 w-full max-w-4xl mb-12">
+          {PRICES.map((f, i) => (
+            <Card
+              key={f.label}
+              className={`relative group p-8 flex flex-col items-center border-2 transition-all duration-200 cursor-pointer shadow-md hover:shadow-xl bg-gradient-to-br ${f.color} ${selected === i ? 'border-primary scale-105 ring-2 ring-primary' : 'border-base-300'} ${selected === i ? 'z-10' : ''}`}
+              onClick={() => setSelected(i)}
+              style={{ minHeight: 280 }}
+            >
+              <div className="absolute top-4 right-4">
+                {selected === i && <span className="inline-flex items-center gap-1 px-2 py-1 text-xs font-semibold rounded bg-primary text-white animate-bounce"><BadgeCheck className="w-4 h-4 mr-1" />Choisi</span>}
+              </div>
+              <div className="mb-4">{f.icon}</div>
+              <div className="text-2xl font-bold mb-2 text-base-content group-hover:text-primary transition-colors">{f.label}</div>
+              <div className="text-4xl font-extrabold mb-2 text-primary drop-shadow">{f.price.toLocaleString()} FCFA</div>
+              <div className="text-base-content/70 mb-2">{f.months} mois d&apos;accès</div>
+              {f.months === 12 && <span className="inline-block mt-2 px-3 py-1 text-xs rounded-full bg-yellow-100 text-yellow-700 font-semibold">Économisez 2 mois</span>}
+              {f.months === 6 && <span className="inline-block mt-2 px-3 py-1 text-xs rounded-full bg-green-100 text-green-700 font-semibold">Populaire</span>}
+            </Card>
+          ))}
+        </div>
+        {/* Résumé dynamique */}
+        {forfait && (
+          <div className="mb-8 w-full max-w-lg mx-auto bg-base-100 rounded-xl shadow-lg p-6 flex flex-col items-center gap-2 border border-primary/20 animate-fade-in">
+            <div className="text-lg font-semibold text-base-content mb-2">Récapitulatif</div>
+            <div className="flex items-center gap-3 text-base-content/80">
+              <span className="font-bold text-primary text-xl">{forfait.label}</span>
+              <span className="text-base-content/60">|</span>
+              <span>{forfait.months} mois</span>
+              <span className="text-base-content/60">|</span>
+              <span className="font-bold text-2xl text-primary">{forfait.price.toLocaleString()} FCFA</span>
+            </div>
+          </div>
+        )}
+        {/* Bouton sticky mobile */}
+        <div className="fixed bottom-0 left-0 w-full flex justify-center bg-gradient-to-t from-base-200/90 to-transparent py-4 z-50 md:static md:bg-none md:py-0">
+          <Button
+            className="btn btn-primary btn-lg w-full max-w-xs shadow-xl"
+            disabled={selected === null}
+            onClick={() => {
+              if (selected === null) return;
+              const forfait = PRICES[selected];
+              router.push(`/payment?structureId=${structureId}&months=${forfait.months}&amount=${forfait.price}`);
+            }}
+          >
+            Valider et payer
+          </Button>
+        </div>
       </div>
     </div>
   );

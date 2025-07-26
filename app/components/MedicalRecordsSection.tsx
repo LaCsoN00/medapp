@@ -1,4 +1,4 @@
-import { FileText, Shield, Eye, Calendar, Activity, Lock, CheckCircle, AlertTriangle } from 'lucide-react';
+import { FileText, Shield, Eye, Calendar, Activity, Lock, CheckCircle, AlertTriangle, Edit, Save, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -9,7 +9,7 @@ import Image from 'next/image';
 import { useAuth } from '../../hooks/useAuth';
 import { useSearchParams } from 'next/navigation';
 import { useEffect, useState, useRef } from 'react';
-import { getMedicalRecordByPatientId, getMedecinByUserId, createMedicalRecord, getAppointments, getPrescriptions, getHealthData, addHealthData, deleteAppointment, deletePrescription, deleteHealthData, createPrescriptionRequest } from '@/actions';
+import { getMedicalRecordByPatientId, getMedecinByUserId, createMedicalRecord, getAppointments, getPrescriptions, getHealthData, addHealthData, deleteAppointment, deletePrescription, deleteHealthData, createPrescriptionRequest, getPatientByUserId, updateMedicalRecord } from '@/actions';
 import { Dialog } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 
@@ -90,6 +90,9 @@ const MedicalRecordsSection = () => {
   const { toast } = useToast();
   const [renewingId, setRenewingId] = useState<number | null>(null);
   const [renewedIds, setRenewedIds] = useState<number[]>([]);
+  const [isEditingNotes, setIsEditingNotes] = useState(false);
+  const [notesText, setNotesText] = useState("");
+  const [savingNotes, setSavingNotes] = useState(false);
 
   const patientIdParam = useSearchParams().get('patientId');
 
@@ -205,7 +208,14 @@ const MedicalRecordsSection = () => {
       if (user && user.role === 'PATIENT') {
         setLoadingHealthData(true);
         try {
-          const data = await getHealthData(user.id);
+          // Récupérer d'abord le patient associé à l'utilisateur
+          const patient = await getPatientByUserId(user.id);
+          if (!patient) {
+            setHealthData([]);
+            return;
+          }
+          
+          const data = await getHealthData(patient.id);
           setHealthData((data || []).map(d => ({
             ...d,
             date: typeof d.date === 'string' ? d.date : (d.date && typeof (d.date as Date).toISOString === 'function' ? (d.date as Date).toISOString() : ''),
@@ -220,13 +230,39 @@ const MedicalRecordsSection = () => {
     fetchHealth();
   }, [user]);
 
+  // Chargement du dossier médical du patient
+  useEffect(() => {
+    const fetchPatientMedicalRecord = async () => {
+      if (user && user.role === 'PATIENT') {
+        try {
+          const patient = await getPatientByUserId(user.id);
+          if (!patient) return;
+          
+          const record = await getMedicalRecordByPatientId(patient.id);
+          if (record) {
+            setPatientRecord(record as PatientRecord);
+          }
+        } catch (error) {
+          console.error('Erreur lors du chargement du dossier médical:', error);
+        }
+      }
+    };
+    fetchPatientMedicalRecord();
+  }, [user]);
+
   const handleAddHealth = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return;
     setAddingHealth(true);
     try {
+      // Récupérer d'abord le patient associé à l'utilisateur
+      const patient = await getPatientByUserId(user.id);
+      if (!patient) {
+        throw new Error('Patient non trouvé pour cet utilisateur');
+      }
+      
       await addHealthData({
-        patientId: user.id,
+        patientId: patient.id,
         label: newHealth.label,
         value: newHealth.value,
         status: newHealth.status,
@@ -234,11 +270,13 @@ const MedicalRecordsSection = () => {
         icon: newHealth.icon || undefined,
       });
       setNewHealth({ label: '', value: '', status: 'normal', date: '', icon: '' });
-      const data = await getHealthData(user.id);
+      const data = await getHealthData(patient.id);
       setHealthData((data || []).map(d => ({
         ...d,
         date: typeof d.date === 'string' ? d.date : (d.date && typeof (d.date as Date).toISOString === 'function' ? (d.date as Date).toISOString() : ''),
       })));
+      // Fermer le modal après validation réussie
+      setShowHealthModal(false);
     } finally {
       setAddingHealth(false);
     }
@@ -256,6 +294,65 @@ const MedicalRecordsSection = () => {
   const handleDeleteHealthData = async (id: number) => {
     await deleteHealthData(id);
     setHealthData(prev => prev.filter(d => d.id !== id));
+  };
+
+  // Fonctions pour gérer l'édition des notes médicales
+  const handleEditNotes = () => {
+    setIsEditingNotes(true);
+    setNotesText(patientRecord?.notes || "");
+  };
+
+  const handleCancelEditNotes = () => {
+    setIsEditingNotes(false);
+    setNotesText("");
+  };
+
+  const handleSaveNotes = async () => {
+    if (!user || !patientRecord) return;
+    
+    setSavingNotes(true);
+    try {
+      const patient = await getPatientByUserId(user.id);
+      if (!patient) {
+        throw new Error('Patient non trouvé');
+      }
+
+      // Récupérer ou créer le dossier médical
+      let record = await getMedicalRecordByPatientId(patient.id);
+      if (!record) {
+        await createMedicalRecord({ patientId: patient.id });
+        record = await getMedicalRecordByPatientId(patient.id);
+        if (!record) {
+          throw new Error('Impossible de créer le dossier médical');
+        }
+      }
+
+      // Mettre à jour les notes
+      await updateMedicalRecord(record.id, { notes: notesText });
+      
+      // Recharger le dossier
+      const updatedRecord = await getMedicalRecordByPatientId(patient.id);
+      if (updatedRecord) {
+        setPatientRecord(updatedRecord as PatientRecord);
+      }
+      
+      setIsEditingNotes(false);
+      setNotesText("");
+      toast({ 
+        title: "Notes sauvegardées", 
+        description: "Vos notes médicales ont été mises à jour.", 
+        variant: "default" 
+      });
+    } catch (error) {
+      console.error('Erreur lors de la sauvegarde des notes:', error);
+      toast({ 
+        title: "Erreur", 
+        description: "Impossible de sauvegarder les notes.", 
+        variant: "destructive" 
+      });
+    } finally {
+      setSavingNotes(false);
+    }
   };
 
   if (isLoading) {
@@ -503,10 +600,11 @@ const MedicalRecordsSection = () => {
           {/* Right - Medical Records Content */}
           <div className="lg:col-span-2 space-y-6 order-2">
             <Tabs defaultValue="consultations" className="w-full">
-              <TabsList className="grid w-full grid-cols-3">
+              <TabsList className="grid w-full grid-cols-4">
                 <TabsTrigger value="consultations">Consultations</TabsTrigger>
                 <TabsTrigger value="prescriptions">Prescriptions</TabsTrigger>
                 <TabsTrigger value="donnees">Données de santé</TabsTrigger>
+                <TabsTrigger value="notes">Notes médicales</TabsTrigger>
               </TabsList>
 
               {/* Consultations Tab */}
@@ -796,6 +894,69 @@ const MedicalRecordsSection = () => {
                         </div>
                       ))}
                     </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              {/* Notes Tab */}
+              <TabsContent value="notes" className="space-y-4">
+                <Card className="card bg-base-100 shadow-md">
+                  <CardHeader>
+                    <CardTitle className="flex items-center justify-between">
+                      <span className="flex items-center text-lg">
+                        <FileText className="w-5 h-5 mr-2 text-primary" />
+                        Notes médicales
+                      </span>
+                      {!isEditingNotes && (
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={handleEditNotes}
+                          className="btn btn-outline btn-sm"
+                        >
+                          <Edit className="w-4 h-4 mr-2" />
+                          Modifier
+                        </Button>
+                      )}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="bg-base-100">
+                    {isEditingNotes ? (
+                      <div className="space-y-4">
+                        <div>
+                          <label className="block mb-2 font-medium">Vos notes médicales</label>
+                          <textarea
+                            className="textarea textarea-bordered w-full min-h-[200px]"
+                            placeholder="Ajoutez vos notes médicales, symptômes, observations..."
+                            value={notesText}
+                            onChange={(e) => setNotesText(e.target.value)}
+                          />
+                        </div>
+                        <div className="flex justify-end gap-2">
+                          <Button 
+                            variant="outline" 
+                            onClick={handleCancelEditNotes}
+                            className="btn btn-outline btn-sm"
+                            disabled={savingNotes}
+                          >
+                            <X className="w-4 h-4 mr-2" />
+                            Annuler
+                          </Button>
+                          <Button 
+                            onClick={handleSaveNotes}
+                            className="btn btn-primary btn-sm"
+                            disabled={savingNotes}
+                          >
+                            <Save className="w-4 h-4 mr-2" />
+                            {savingNotes ? 'Sauvegarde...' : 'Sauvegarder'}
+                          </Button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="text-base-content/80 whitespace-pre-line min-h-[200px] p-4 bg-base-200/50 rounded-lg">
+                        {patientRecord?.notes || 'Aucune note enregistrée. Cliquez sur "Modifier" pour ajouter vos notes médicales.'}
+                      </div>
                     )}
                   </CardContent>
                 </Card>

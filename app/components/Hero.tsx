@@ -28,7 +28,7 @@ const Hero = () => {
         <ThemeToggle />
       </div>
       
-      <div className="container">
+      <div className="max-w-6xl mx-auto w-full px-2 sm:px-4">
         <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
           {/* Image - First on mobile, right on desktop */}
           <div className="relative order-first lg:order-last">

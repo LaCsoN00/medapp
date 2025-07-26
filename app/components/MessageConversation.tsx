@@ -24,8 +24,10 @@ export default function MessageConversation({ userId, interlocutorId }: MessageC
   useEffect(() => {
     async function fetchMessages() {
       setLoading(true);
+      console.log('📨 Récupération des messages entre userId:', userId, 'et interlocutorId:', interlocutorId);
       const res = await fetch(`/api/messages/conversation?userA=${userId}&userB=${interlocutorId}`);
       const data = await res.json();
+      console.log('📨 Messages récupérés:', data);
       setMessages(data);
       setLoading(false);
     }

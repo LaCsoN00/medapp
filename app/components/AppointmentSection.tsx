@@ -89,6 +89,12 @@ const AppointmentSection = () => {
   const [reviewMedecin, setReviewMedecin] = useState<Medecin | null>(null);
   const [patientId, setPatientId] = useState<number | null>(null);
 
+  // Modal de message
+  const [isMessageModalOpen, setIsMessageModalOpen] = useState(false);
+  const [messageMedecin, setMessageMedecin] = useState<Medecin | null>(null);
+  const [messageContent, setMessageContent] = useState('');
+  const [sendingMessage, setSendingMessage] = useState(false);
+
   // Pour la vue médecin
   const [doctorAppointments, setDoctorAppointments] = useState<Appointment[]>([]);
   const [doctorLoading, setDoctorLoading] = useState(false);
@@ -385,6 +391,64 @@ const AppointmentSection = () => {
     }
   };
 
+  // Fonction pour appeler un médecin
+  const handleCallMedecin = (phone: string) => {
+    if (!phone) {
+      toast({
+        title: "📞 Numéro indisponible",
+        description: "Le numéro de téléphone n'est pas disponible",
+        variant: "destructive",
+      });
+      return;
+    }
+    const telUrl = `tel:${phone}`;
+    window.open(telUrl, '_self');
+  };
+
+  // Fonction pour envoyer un message à un médecin
+  const handleMessageMedecin = (medecin: Medecin) => {
+    setMessageMedecin(medecin);
+    setIsMessageModalOpen(true);
+  };
+
+  // Fonction pour envoyer le message
+  const handleSendMessage = async () => {
+    if (!messageContent.trim() || !messageMedecin || !user) {
+      toast({
+        title: "📝 Message vide",
+        description: "Veuillez saisir un message",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setSendingMessage(true);
+    try {
+      // Ici vous pouvez implémenter l'envoi du message via votre API
+      // Pour l'instant, on simule l'envoi
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      toast({
+        title: "✅ Message envoyé",
+        description: `Votre message a été envoyé à Dr. ${messageMedecin.firstName} ${messageMedecin.lastName}`,
+        duration: 3000,
+      });
+
+      // Réinitialiser le modal
+      setMessageContent('');
+      setIsMessageModalOpen(false);
+      setMessageMedecin(null);
+    } catch {
+      toast({
+        title: "❌ Erreur",
+        description: "Impossible d'envoyer le message. Veuillez réessayer.",
+        variant: "destructive",
+      });
+    } finally {
+      setSendingMessage(false);
+    }
+  };
+
   // Renvoie les dates où le médecin travaille (prochains 14 jours)
   const getAvailableDates = () => {
     if (!selectedMedecin || medecinWorkingHours.length === 0) return [];
@@ -550,7 +614,7 @@ const AppointmentSection = () => {
                       <Button className="btn btn-primary flex-1" onClick={() => appointment.patientId && router.push(`/medical-records?patientId=${appointment.patientId}`)}>
                         Voir le dossier
                       </Button>
-                      <Button variant="outline" className="btn btn-outline flex-1" onClick={() => {/* TODO: action contacter */}}>
+                      <Button variant="outline" className="btn btn-outline flex-1" onClick={() => router.push(`/messages?recipient=${appointment.patientId}`)}>
                         Contacter
                       </Button>
                      {appointment.status === 'PENDING' && (
@@ -836,12 +900,12 @@ const AppointmentSection = () => {
                           <Star className="w-4 h-4" />
                         </Button>
                       )}
-                      {medecin.phone && (
-                        <Button variant="outline" size="sm" className="btn btn-outline btn-sm rounded-full px-2 py-1 text-sm">
-                          <Phone className="w-4 h-4" />
-                        </Button>
-                      )}
-                      <Button variant="outline" size="sm" className="btn btn-outline btn-sm rounded-full px-2 py-1 text-sm">
+                                              {medecin.phone && (
+                          <Button variant="outline" size="sm" className="btn btn-outline btn-sm rounded-full px-2 py-1 text-sm" onClick={() => handleCallMedecin(medecin.phone!)}>
+                            <Phone className="w-4 h-4" />
+                          </Button>
+                        )}
+                      <Button variant="outline" size="sm" className="btn btn-outline btn-sm rounded-full px-2 py-1 text-sm" onClick={() => handleMessageMedecin(medecin)}>
                         <Mail className="w-4 h-4" />
                       </Button>
                     </div>
@@ -990,6 +1054,82 @@ const AppointmentSection = () => {
                   </div>
                 </div>
               )}
+            </div>
+          </div>
+        )}
+
+        {/* Modal de message */}
+        {isMessageModalOpen && messageMedecin && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <div className="bg-base-100 rounded-2xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto border border-base-300 relative animate-fade-in px-0 sm:px-2">
+              {/* Header */}
+              <div className="flex items-center justify-between p-6 border-b border-base-200 bg-base-100 rounded-t-2xl">
+                <h3 className="text-xl font-bold flex items-center gap-2 text-primary">
+                  <Mail className="w-6 h-6 text-primary" />
+                  Envoyer un message à {messageMedecin.firstName} {messageMedecin.lastName}
+                </h3>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setIsMessageModalOpen(false)}
+                  className="h-8 w-8 p-0"
+                >
+                  <X className="w-5 h-5" />
+                </Button>
+              </div>
+              <div className="p-6 space-y-6 w-full">
+                <div className="flex items-center gap-3">
+                  <Avatar className="w-12 h-12">
+                    <AvatarFallback className="bg-primary text-primary-content">
+                      {messageMedecin.firstName.charAt(0)}{messageMedecin.lastName.charAt(0)}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="flex-1">
+                    <h4 className="font-semibold text-lg text-base-content">
+                      Dr. {messageMedecin.firstName} {messageMedecin.lastName}
+                    </h4>
+                    <p className="text-base-content/70 text-sm">
+                      {messageMedecin.speciality.name}
+                    </p>
+                  </div>
+                </div>
+                <div className="form-control">
+                  <label className="text-sm font-medium mb-2 block">Votre message</label>
+                  <Textarea
+                    placeholder="Écrivez votre message..."
+                    value={messageContent}
+                    onChange={(e) => setMessageContent(e.target.value)}
+                    rows={6}
+                    className="w-full"
+                  />
+                </div>
+                <div className="flex justify-end gap-3 pt-2 w-full">
+                  <Button
+                    variant="outline"
+                    onClick={() => setIsMessageModalOpen(false)}
+                    className=""
+                  >
+                    Annuler
+                  </Button>
+                  <Button
+                    onClick={handleSendMessage}
+                    disabled={!messageContent.trim() || sendingMessage}
+                    className="btn btn-primary shadow-md"
+                  >
+                    {sendingMessage ? (
+                      <>
+                        <div className="loading loading-spinner loading-sm mr-2"></div>
+                        Envoi...
+                      </>
+                    ) : (
+                      <>
+                        <Check className="w-4 h-4 mr-2" />
+                        Envoyer
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </div>
             </div>
           </div>
         )}
