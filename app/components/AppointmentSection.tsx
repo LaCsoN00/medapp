@@ -592,15 +592,13 @@ const AppointmentSection = () => {
           <div className="lg:col-span-1 order-first lg:order-last">
             <Card className="card bg-base-100 shadow-xl overflow-hidden max-w-full">
               <Image
-                src="/assets/appointment-booking.jpg"
+                src="/assets/1.jpeg"
                 alt="Prise de rendez-vous médical"
                 width={600}
                 height={400}
                 className="w-full h-full object-cover min-h-[300px] sm:min-h-[400px] lg:min-h-[500px]"
                 priority
               />
-              
-              {/* Overlay Content */}
               <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end">
                 <div className="p-6 text-white break-words max-w-full">
                   <h3 className="text-xl font-bold mb-2 break-words max-w-full truncate">Consultation en ligne</h3>

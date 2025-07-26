@@ -39,6 +39,7 @@ model Patient {
   prescriptionRequests PrescriptionRequest[]
   reviews              Review[]
   new_Prescription     new_Prescription[]
+  subscriptions        Subscription[]
 }
 
 model MedicalRecord {
@@ -94,6 +95,10 @@ model MedicalLocation {
   longitude Float
   type      String
   province  String?
+
+  @@unique([name, address])
+
+  subscriptions Subscription[]
 }
 
 model Speciality {
@@ -206,4 +211,20 @@ model Message {
   lu         Boolean  @default(false)
   receiver   User     @relation("MessageReceiver", fields: [receiverId], references: [id])
   sender     User     @relation("MessageSender", fields: [senderId], references: [id])
+}
+
+model Subscription {
+  id               Int              @id @default(autoincrement())
+  patientId        Int
+  medicalLocationId Int
+  startDate        DateTime         @default(now())
+  endDate          DateTime?
+  status           String           @default("ACTIVE") // ACTIVE, CANCELLED, EXPIRED, etc.
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+
+  patient          Patient          @relation(fields: [patientId], references: [id])
+  medicalLocation  MedicalLocation  @relation(fields: [medicalLocationId], references: [id])
+
+  @@unique([patientId, medicalLocationId])
 }

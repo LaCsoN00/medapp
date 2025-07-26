@@ -1,4 +1,4 @@
-import { MapPin, Navigation, Phone, Clock, Star, Share2, Copy, Settings, Mail } from 'lucide-react';
+import { MapPin, Navigation, Phone, Clock, Star, Share2, Copy, Settings, Mail, ChevronDown, ChevronUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -7,9 +7,11 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useAuth } from '../../hooks/useAuth';
 import Link from 'next/link';
 import { useToast } from '@/hooks/use-toast';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { getMedecinByUserId } from '@/actions';
 import { Medecin as MedecinType, WorkingHour } from '@/types';
+import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 
 // Définition du type MedicalLocation si non importé
 type MedicalLocation = {
@@ -21,6 +23,32 @@ type MedicalLocation = {
   type: string;
   province?: string | null;
 };
+
+// Après le type MedicalLocation, enrichir les données :
+type EnrichedMedicalLocation = MedicalLocation & {
+  isUrgence?: boolean;
+  isGarde?: boolean;
+  horaires?: string;
+  phone?: string;
+};
+
+// Exemple d'enrichissement en dur (à adapter selon la vraie base)
+function enrichLocations(locations: MedicalLocation[]): EnrichedMedicalLocation[] {
+  return locations.map((loc, i) => {
+    // Hôpitaux d'urgence (exemple : id pair)
+    const isUrgence = loc.type.toLowerCase().includes('hopital') && loc.id % 2 === 0;
+    // Pharmacies de garde (exemple : id impair)
+    const isGarde = loc.type.toLowerCase().includes('pharmacie') && loc.id % 2 === 1;
+    // Horaires et téléphone en dur
+    const horaires = loc.type.toLowerCase().includes('pharmacie')
+      ? '08:00 - 22:00'
+      : loc.type.toLowerCase().includes('hopital')
+        ? '24h/24 - 7j/7'
+        : '09:00 - 18:00';
+    const phone = '07' + String(1000000 + i * 12345).slice(0, 7);
+    return { ...loc, isUrgence, isGarde, horaires, phone };
+  });
+}
 
 // Liste statique des provinces du Gabon
 const GABON_PROVINCES: string[] = [
@@ -35,9 +63,45 @@ const GABON_PROVINCES: string[] = [
   'Woleu-Ntem',
 ];
 
+// Fonction utilitaire pour souscrire à une structure
+async function subscribeToStructure(userId: number, medicalLocationId: number) {
+  const res = await fetch('/api/patient/subscription', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ userId, medicalLocationId })
+  });
+  return res.json();
+}
+
+// Définir des services simulés par type
+const SERVICES_BY_TYPE: Record<string, string[]> = {
+  hopital: [
+    'Urgences 24/7',
+    'Consultations spécialisées',
+    'Imagerie médicale',
+    'Chirurgie',
+    'Maternité',
+  ],
+  pharmacie: [
+    'Médicaments sur ordonnance',
+    'Parapharmacie',
+    'Conseil santé',
+    'Vaccins',
+    'Produits bébé',
+  ],
+  clinique: [
+    'Consultations',
+    'Soins infirmiers',
+    'Analyses médicales',
+    'Suivi grossesse',
+    'Petite chirurgie',
+  ],
+};
+
 const LocationSection = () => {
   const { user, isLoading } = useAuth();
   const { toast } = useToast();
+  const router = useRouter();
 
   // Hooks pour médecin, toujours déclarés en haut
   const [medecin, setMedecin] = useState<MedecinType | null>(null);
@@ -50,6 +114,18 @@ const LocationSection = () => {
   // Province sélectionnée et affichage du sélecteur
   const [selectedProvince, setSelectedProvince] = useState<string>('Estuaire');
   const [showProvinceSelector, setShowProvinceSelector] = useState<boolean>(false);
+
+  // Ajout des états pour l'affichage étendu
+  const [showAllHospitals, setShowAllHospitals] = useState(false);
+  const [showAllPharmacies, setShowAllPharmacies] = useState(false);
+  const [showAllClinics, setShowAllClinics] = useState(false);
+
+  // Ajout des états de filtre rapide
+  const [quickFilter, setQuickFilter] = useState<'none' | 'urgences' | 'pharmacies' | 'open'>('none');
+
+  const hospitalsRef = useRef<HTMLDivElement>(null);
+  const pharmaciesRef = useRef<HTMLDivElement>(null);
+  const clinicsRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (user && (user.role === 'MEDECIN' || user.role === 'DOCTEUR')) {
@@ -81,7 +157,7 @@ const LocationSection = () => {
       fetch('/api/locations')
         .then(res => res.json())
         .then((data: MedicalLocation[]) => {
-          setLocations(data);
+          setLocations(enrichLocations(data));
           setErrorLocations(false);
         })
         .catch(() => {
@@ -258,11 +334,11 @@ const LocationSection = () => {
                         )}
                       </Avatar>
                       <div className="flex-1">
-                        <h4 className="font-semibold text-base-content text-lg mb-1 flex items-center gap-2 break-words max-w-full truncate">
-                          Dr {medecin.firstName} {medecin.lastName}
+                        <h4 className="font-semibold text-base-content text-lg mb-1 flex items-center gap-2 break-words max-w-full">
+                          <span className="truncate flex-1">Dr {medecin.firstName} {medecin.lastName}</span>
                           {medecin.speciality?.name && (
-                            <Badge variant="outline" className="mb-0 ml-2 text-xs flex items-center gap-1">
-                              <MapPin className="w-3 h-3 text-primary" />
+                            <Badge variant="outline" className="mb-0 text-xs flex items-center gap-1 flex-shrink-0 whitespace-nowrap">
+                              <MapPin className="w-3 h-3 text-primary flex-shrink-0" />
                               {medecin.speciality.name}
                             </Badge>
                           )}
@@ -289,46 +365,37 @@ const LocationSection = () => {
                         </div>
                       </div>
                     </div>
-                    {/* Note par étoiles si rating dispo */}
-                    {typeof medecin.rating === 'number' && (
-                      <div className="flex flex-col items-end min-w-[70px]">
-                        <div className="flex items-center gap-0.5 mb-1">
-                          {[1,2,3,4,5].map((star) => (
-                            <Star
-                              key={star}
-                              className={`w-4 h-4 ${medecin.rating >= star ? 'text-yellow-400 fill-yellow-400' : 'text-gray-300'} `}
-                              fill={medecin.rating >= star ? '#facc15' : 'none'}
-                            />
-                          ))}
-                        </div>
-                        <span className="text-xs text-base-content/70 font-medium">{medecin.rating.toFixed(1)} / 5</span>
-                      </div>
-                    )}
                   </div>
                   {/* Services proposés */}
                   <div className="mb-4">
-                    <h5 className="text-sm font-medium text-base-content mb-2 flex items-center gap-2 break-words max-w-full">
-                      <Badge variant="secondary" className="px-2 py-1"><Clock className="w-3 h-3 mr-1" />Services</Badge>
-                      <span>proposés :</span>
-                    </h5>
+                    <div className="flex items-center justify-between mb-2">
+                      <h5 className="text-sm font-medium text-base-content flex items-center gap-2 break-words max-w-full">
+                        <Badge variant="secondary" className="px-2 py-1"><Clock className="w-3 h-3 mr-1" />Services</Badge>
+                        <span>proposés :</span>
+                      </h5>
+                      {/* Note par étoiles si rating dispo */}
+                      {typeof medecin.rating === 'number' && (
+                        <div className="flex items-center gap-1">
+                          <div className="flex items-center gap-0.5">
+                            {[1,2,3,4,5].map((star) => (
+                              <Star
+                                key={star}
+                                className={`w-3 h-3 ${medecin.rating >= star ? 'text-yellow-400 fill-yellow-400' : 'text-gray-300'} `}
+                                fill={medecin.rating >= star ? '#facc15' : 'none'}
+                              />
+                            ))}
+                          </div>
+                          <span className="text-xs text-base-content/70 font-medium">{medecin.rating.toFixed(1)} / 5</span>
+                        </div>
+                      )}
+                    </div>
                     <div className="flex flex-wrap gap-1 break-words max-w-full">
                       {services.map((service: string, serviceIndex: number) => (
-                        <Badge key={serviceIndex} variant="outline" className="text-xs flex items-center gap-1">
-                          <span>•</span> {service}
+                        <Badge key={serviceIndex} variant="outline" className="text-xs flex items-center gap-1 whitespace-nowrap">
+                          <span className="flex-shrink-0">•</span> 
+                          {service}
                         </Badge>
                       ))}
-                    </div>
-                  </div>
-                  {/* Accès et transports */}
-                  <div className="mb-4">
-                    <h5 className="text-sm font-medium text-base-content mb-2 flex items-center gap-2 break-words max-w-full">
-                      <Badge variant="secondary" className="px-2 py-1"><Navigation className="w-3 h-3 mr-1" />Accès</Badge>
-                      <span>et transports :</span>
-                    </h5>
-                    <div className="space-y-2 text-gray-600 break-words max-w-full">
-                      <p>{medecin.city ? `Ville : ${medecin.city}` : 'Ville non renseignée'}</p>
-                      <p>🚗 Parking {medecin.address ? 'disponible' : 'non renseigné'}</p>
-                      <p>♿ Accès PMR</p>
                     </div>
                   </div>
                   {/* Boutons d'action */}
@@ -346,27 +413,12 @@ const LocationSection = () => {
               </Card>
             </div>
           </div>
-          {/* Lien vers la carte complète */}
-          <div className="text-center mt-8 break-words max-w-full">
-            <Link href="/location">
-              <Button className="btn btn-outline btn-lg" type="button">
-                <MapPin className="w-5 h-5 mr-2" />
-                Voir la carte des établissements
-              </Button>
-            </Link>
-          </div>
         </div>
       </section>
     );
   }
 
   if (user.role === 'PATIENT') {
-    const quickActions = [
-      { icon: <MapPin className="w-4 h-4" />, text: 'Urgences les plus proches', color: 'btn-error' },
-      { icon: <Phone className="w-4 h-4" />, text: 'Pharmacies de garde', color: 'btn-warning' },
-      { icon: <Clock className="w-4 h-4" />, text: 'Ouvert maintenant', color: 'btn-success' },
-    ];
-
     // --- SOLUTION PROPRE (filtrage par province activé et types anglais inclus) ---
     const selectedProvinceUpper = selectedProvince.toUpperCase();
     // --- Filtrage séparé ---
@@ -378,6 +430,7 @@ const LocationSection = () => {
         province === selectedProvinceUpper
       );
     });
+    const urgenceHospitals = hospitals.filter(h => (h as EnrichedMedicalLocation).isUrgence);
     const clinics = locations.filter((loc) => {
       const type = loc.type?.toUpperCase() || '';
       const province = (loc.province || '').toUpperCase();
@@ -394,6 +447,7 @@ const LocationSection = () => {
         province === selectedProvinceUpper
       );
     });
+    const gardePharmacies = pharmacies.filter(p => (p as EnrichedMedicalLocation).isGarde);
 
     return (
       <section className="section-padding bg-base-100">
@@ -455,23 +509,17 @@ const LocationSection = () => {
                 </CardContent>
               </Card>
 
-              {/* Actions rapides */}
-              <Card className="card bg-base-100 shadow-md max-w-full">
-                <CardHeader>
-                  <CardTitle className="text-lg">Recherche rapide</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-2 break-words max-w-full">
-                    {/* Les actions rapides restent inchangées */}
-                    {quickActions.map((action, index) => (
-                      <Button key={index} className={`btn ${action.color} w-full justify-start`}>
-                        {action.icon}
-                        <span className="ml-2">{action.text}</span>
-                      </Button>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
+              <div className="w-full flex justify-center my-6">
+                <Image 
+                  src="/assets/11.jpeg" 
+                  alt="Recherche médicale rapide" 
+                  width={600}
+                  height={400}
+                  style={{ borderRadius: '1rem', objectFit: 'cover' }}
+                  className="w-full"
+                  priority
+                />
+              </div>
             </div>
 
             {/* Listes établissements dynamiques */}
@@ -498,24 +546,18 @@ const LocationSection = () => {
                         </Badge>
                       </div>
                       <div className="space-y-4">
-                        {hospitals.length === 0 ? (
-                          <div className="text-base-content/60">Aucun hôpital ou clinique trouvé.</div>
-                        ) : hospitals.map((hospital, index) => (
+                        <div ref={hospitalsRef}></div>
+                        {(quickFilter === 'urgences' ? urgenceHospitals.slice(0, 3) : quickFilter === 'open' ? hospitals.slice(0, 3) : (showAllHospitals ? hospitals : hospitals.slice(0, 3))).map((hospital, index) => (
                           <Card key={hospital.id || index} className="card bg-base-100 shadow-md hover:shadow-lg transition-shadow max-w-full">
                             <CardContent className="p-6">
                               <div className="flex items-start justify-between mb-4 break-words max-w-full">
                                 <div className="flex items-center gap-4 flex-1">
-                                  <Avatar className="w-12 h-12 border-2 border-primary/20">
-                                    <AvatarFallback className="bg-gradient-to-r from-primary to-secondary text-primary-content font-bold">
-                                      {hospital.name?.split(' ').map((w: string) => w[0]).join('').slice(0,2).toUpperCase()}
-                                    </AvatarFallback>
-                                  </Avatar>
                                   <div className="flex-1">
-                                    <h4 className="font-semibold text-base-content text-lg mb-1 flex items-center gap-2 break-words max-w-full truncate">
-                                      {hospital.name}
+                                    <h4 className="font-semibold text-base-content text-lg mb-1 flex items-center gap-2 break-words max-w-full">
+                                      <span className="truncate flex-1">{hospital.name}</span>
                                       {hospital.type && (
-                                        <Badge variant="outline" className="mb-0 ml-2 text-xs flex items-center gap-1">
-                                          <MapPin className="w-3 h-3 text-primary" />
+                                        <Badge variant="outline" className="mb-0 text-xs flex items-center gap-1 flex-shrink-0 whitespace-nowrap">
+                                          <MapPin className="w-3 h-3 text-primary flex-shrink-0" />
                                           {hospital.type}
                                         </Badge>
                                       )}
@@ -532,9 +574,12 @@ const LocationSection = () => {
                                       </div>
                                       <div className="flex items-center text-sm text-base-content/80 break-words max-w-full">
                                         <Clock className="w-4 h-4 mr-2 text-primary" />
-                                        <span className="font-medium">-</span>
+                                        <span className="font-medium">{(hospital as EnrichedMedicalLocation).horaires}</span>
                                       </div>
-                                      {/* Pas de téléphone dans la base, à adapter si besoin */}
+                                      <div className="flex items-center text-sm text-base-content/80 break-words max-w-full">
+                                        <Phone className="w-4 h-4 mr-2 text-primary" />
+                                        <span>{(hospital as EnrichedMedicalLocation).phone}</span>
+                                      </div>
                                     </div>
                                   </div>
                                 </div>
@@ -547,12 +592,18 @@ const LocationSection = () => {
                                   <span>disponibles :</span>
                                 </h5>
                                 <div className="flex flex-wrap gap-1 break-words max-w-full">
-                                  <Badge variant="outline" className="text-xs flex items-center gap-1">
-                                    <span>•</span> -
-                                  </Badge>
+                                  {(SERVICES_BY_TYPE[(hospital.type || '').toLowerCase()] || ['Service non renseigné']).map((service, idx) => (
+                                    <Badge key={idx} variant="outline" className="text-xs flex items-center gap-1 whitespace-nowrap">
+                                      <span className="flex-shrink-0">•</span> 
+                                      {service}
+                                    </Badge>
+                                  ))}
                                 </div>
                               </div>
                               <div className="flex gap-2 break-words max-w-full flex-wrap">
+                                <Button className="btn btn-primary flex-1" onClick={() => router.push(`/payment/subscribe?structureId=${hospital.id}`)}>
+                                  Souscrire
+                                </Button>
                                 <Button className="btn btn-primary flex-1">
                                   <Navigation className="w-4 h-4 mr-2" />
                                   Directions
@@ -565,6 +616,13 @@ const LocationSection = () => {
                             </CardContent>
                           </Card>
                         ))}
+                        {hospitals.length > 3 && (
+                          <div className="flex justify-center mt-2">
+                            <Button variant="ghost" size="icon" onClick={() => setShowAllHospitals(v => !v)}>
+                              {showAllHospitals ? <ChevronUp className="w-6 h-6" /> : <ChevronDown className="w-6 h-6" />}
+                            </Button>
+                          </div>
+                        )}
                       </div>
                     </TabsContent>
                     <TabsContent value="pharmacies" className="space-y-4">
@@ -575,21 +633,15 @@ const LocationSection = () => {
                         </Badge>
                       </div>
                       <div className="space-y-4">
-                        {pharmacies.length === 0 ? (
-                          <div className="text-base-content/60">Aucune pharmacie trouvée.</div>
-                        ) : pharmacies.map((pharmacy, index) => (
+                        <div ref={pharmaciesRef}></div>
+                        {(quickFilter === 'pharmacies' ? gardePharmacies.slice(0, 3) : quickFilter === 'open' ? pharmacies.slice(0, 3) : (showAllPharmacies ? pharmacies : pharmacies.slice(0, 3))).map((pharmacy, index) => (
                           <Card key={pharmacy.id || index} className="card bg-base-100 shadow-md hover:shadow-lg transition-shadow max-w-full">
                             <CardContent className="p-6">
                               <div className="flex items-start justify-between mb-4 break-words max-w-full">
                                 <div className="flex items-center gap-4 flex-1">
-                                  <Avatar className="w-12 h-12 border-2 border-primary/20">
-                                    <AvatarFallback className="bg-gradient-to-r from-primary to-secondary text-primary-content font-bold">
-                                      {pharmacy.name?.split(' ').map((w: string) => w[0]).join('').slice(0,2).toUpperCase()}
-                                    </AvatarFallback>
-                                  </Avatar>
                                   <div className="flex-1">
-                                    <h4 className="font-semibold text-base-content text-lg mb-1 flex items-center gap-2 break-words max-w-full truncate">
-                                      {pharmacy.name}
+                                    <h4 className="font-semibold text-base-content text-lg mb-1 flex items-center gap-2 break-words max-w-full">
+                                      <span className="truncate flex-1">{pharmacy.name}</span>
                                     </h4>
                                     <div className="flex flex-col gap-1 mt-1">
                                       <div className="flex items-center text-sm text-base-content/80 break-words max-w-full">
@@ -602,7 +654,11 @@ const LocationSection = () => {
                                       </div>
                                       <div className="flex items-center text-sm text-base-content/80 break-words max-w-full">
                                         <Clock className="w-4 h-4 mr-2 text-primary" />
-                                        <span className="font-medium">-</span>
+                                        <span className="font-medium">{(pharmacy as EnrichedMedicalLocation).horaires}</span>
+                                      </div>
+                                      <div className="flex items-center text-sm text-base-content/80 break-words max-w-full">
+                                        <Phone className="w-4 h-4 mr-2 text-primary" />
+                                        <span>{(pharmacy as EnrichedMedicalLocation).phone}</span>
                                       </div>
                                     </div>
                                   </div>
@@ -614,12 +670,25 @@ const LocationSection = () => {
                                   <span>disponibles :</span>
                                 </h5>
                                 <div className="flex flex-wrap gap-1 break-words max-w-full">
-                                  <Badge variant="outline" className="text-xs flex items-center gap-1">
-                                    <span>•</span> -
-                                  </Badge>
+                                  {(SERVICES_BY_TYPE[(pharmacy.type || '').toLowerCase()] || ['Service non renseigné']).map((service, idx) => (
+                                    <Badge key={idx} variant="outline" className="text-xs flex items-center gap-1 whitespace-nowrap">
+                                      <span className="flex-shrink-0">•</span> 
+                                      {service}
+                                    </Badge>
+                                  ))}
                                 </div>
                               </div>
                               <div className="flex gap-2 break-words max-w-full flex-wrap">
+                                <Button className="btn btn-primary flex-1" onClick={async () => {
+                                  const result = await subscribeToStructure(user.id, pharmacy.id);
+                                  toast({
+                                    title: result.success ? 'Souscription réussie' : 'Erreur',
+                                    description: result.success ? 'Vous êtes abonné à cette structure.' : (result.error || 'Erreur lors de la souscription.'),
+                                    variant: result.success ? 'default' : 'destructive',
+                                  });
+                                }}>
+                                  Souscrire
+                                </Button>
                                 <Button className="btn btn-primary flex-1">
                                   <Navigation className="w-4 h-4 mr-2" />
                                   Directions
@@ -632,6 +701,13 @@ const LocationSection = () => {
                             </CardContent>
                           </Card>
                         ))}
+                        {pharmacies.length > 3 && (
+                          <div className="flex justify-center mt-2">
+                            <Button variant="ghost" size="icon" onClick={() => setShowAllPharmacies(v => !v)}>
+                              {showAllPharmacies ? <ChevronUp className="w-6 h-6" /> : <ChevronDown className="w-6 h-6" />}
+                            </Button>
+                          </div>
+                        )}
                       </div>
                     </TabsContent>
                     <TabsContent value="clinics" className="space-y-4">
@@ -642,21 +718,15 @@ const LocationSection = () => {
                         </Badge>
                       </div>
                       <div className="space-y-4">
-                        {clinics.length === 0 ? (
-                          <div className="text-base-content/60">Aucune clinique trouvée.</div>
-                        ) : clinics.map((clinic, index) => (
+                        <div ref={clinicsRef}></div>
+                        {(showAllClinics ? clinics : clinics.slice(0, 3)).map((clinic, index) => (
                           <Card key={clinic.id || index} className="card bg-base-100 shadow-md hover:shadow-lg transition-shadow max-w-full">
                             <CardContent className="p-6">
                               <div className="flex items-start justify-between mb-4 break-words max-w-full">
                                 <div className="flex items-center gap-4 flex-1">
-                                  <Avatar className="w-12 h-12 border-2 border-primary/20">
-                                    <AvatarFallback className="bg-gradient-to-r from-primary to-secondary text-primary-content font-bold">
-                                      {clinic.name?.split(' ').map((w: string) => w[0]).join('').slice(0,2).toUpperCase()}
-                                    </AvatarFallback>
-                                  </Avatar>
                                   <div className="flex-1">
-                                    <h4 className="font-semibold text-base-content text-lg mb-1 flex items-center gap-2 break-words max-w-full truncate">
-                                      {clinic.name}
+                                    <h4 className="font-semibold text-base-content text-lg mb-1 flex items-center gap-2 break-words max-w-full">
+                                      <span className="truncate flex-1">{clinic.name}</span>
                                     </h4>
                                     <div className="flex flex-col gap-1 mt-1">
                                       <div className="flex items-center text-sm text-base-content/80 break-words max-w-full">
@@ -669,7 +739,11 @@ const LocationSection = () => {
                                       </div>
                                       <div className="flex items-center text-sm text-base-content/80 break-words max-w-full">
                                         <Clock className="w-4 h-4 mr-2 text-primary" />
-                                        <span className="font-medium">-</span>
+                                        <span className="font-medium">{(clinic as EnrichedMedicalLocation).horaires}</span>
+                                      </div>
+                                      <div className="flex items-center text-sm text-base-content/80 break-words max-w-full">
+                                        <Phone className="w-4 h-4 mr-2 text-primary" />
+                                        <span>{(clinic as EnrichedMedicalLocation).phone}</span>
                                       </div>
                                     </div>
                                   </div>
@@ -681,12 +755,25 @@ const LocationSection = () => {
                                   <span>disponibles :</span>
                                 </h5>
                                 <div className="flex flex-wrap gap-1 break-words max-w-full">
-                                  <Badge variant="outline" className="text-xs flex items-center gap-1">
-                                    <span>•</span> -
-                                  </Badge>
+                                  {(SERVICES_BY_TYPE[(clinic.type || '').toLowerCase()] || ['Service non renseigné']).map((service, idx) => (
+                                    <Badge key={idx} variant="outline" className="text-xs flex items-center gap-1 whitespace-nowrap">
+                                      <span className="flex-shrink-0">•</span> 
+                                      {service}
+                                    </Badge>
+                                  ))}
                                 </div>
                               </div>
                               <div className="flex gap-2 break-words max-w-full flex-wrap">
+                                <Button className="btn btn-primary flex-1" onClick={async () => {
+                                  const result = await subscribeToStructure(user.id, clinic.id);
+                                  toast({
+                                    title: result.success ? 'Souscription réussie' : 'Erreur',
+                                    description: result.success ? 'Vous êtes abonné à cette structure.' : (result.error || 'Erreur lors de la souscription.'),
+                                    variant: result.success ? 'default' : 'destructive',
+                                  });
+                                }}>
+                                  Souscrire
+                                </Button>
                                 <Button className="btn btn-primary flex-1">
                                   <Navigation className="w-4 h-4 mr-2" />
                                   Directions
@@ -699,6 +786,13 @@ const LocationSection = () => {
                             </CardContent>
                           </Card>
                         ))}
+                        {clinics.length > 3 && (
+                          <div className="flex justify-center mt-2">
+                            <Button variant="ghost" size="icon" onClick={() => setShowAllClinics(v => !v)}>
+                              {showAllClinics ? <ChevronUp className="w-6 h-6" /> : <ChevronDown className="w-6 h-6" />}
+                            </Button>
+                          </div>
+                        )}
                       </div>
                     </TabsContent>
                   </>

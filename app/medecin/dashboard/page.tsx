@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { Calendar, Clock, User, Phone, Mail, FileText, TrendingUp, Users } from 'lucide-react';
+import { Calendar, Clock, User, Phone, Mail, FileText, TrendingUp, Users, Edit, Trash2, Plus, CalendarDays, AlertTriangle, CheckCircle, XCircle, Clock as ClockIcon, Settings } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -389,56 +389,181 @@ const MedecinDashboard = () => {
   return (
     <RoleBasedRedirect allowedRoles={['MEDECIN', 'DOCTEUR']}>
       <ProtectedLayout>
-        <div className="max-w-6xl mx-auto pt-24 pb-20 w-full">
+        <div className="max-w-6xl mx-auto pt-24 pb-20 w-full px-2 sm:px-4">
           {/* Header */}
           <div className="mb-8">
-            <div className="flex items-center gap-4 mb-4 max-w-full">
-              <Avatar className="w-16 h-16 border-4 border-primary/20">
+            <div className="flex flex-col items-center gap-2 mb-4 max-w-full">
+              <Avatar className="w-20 h-20 border-4 border-primary/20 mb-2">
                 {medecin.photo ? (
                   <AvatarImage src={medecin.photo} alt="Photo de profil" />
                 ) : (
-                  <AvatarFallback>{medecin.firstName?.[0] || medecin.email[0] || 'D'}</AvatarFallback>
+                  <AvatarFallback className="text-3xl">{medecin.firstName?.[0] || medecin.email[0] || 'D'}</AvatarFallback>
                 )}
               </Avatar>
-              <div className="break-words max-w-full">
-                <h1 className="text-3xl font-bold text-base-content break-words max-w-full truncate">
-                  Dr. {medecin.firstName} {medecin.lastName}
-                </h1>
-                <p className="text-primary font-medium text-lg break-words max-w-full truncate">{medecin.speciality.name}</p>
-                <div className="flex items-center gap-4 mt-2 flex-wrap">
-                  <div className="flex items-center gap-1">
-                    <TrendingUp className="w-4 h-4 text-warning" />
-                    <span className="text-sm break-words max-w-full">{medecin.rating}/5 ({medecin.reviews} avis)</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <Users className="w-4 h-4 text-info" />
-                    <span className="text-sm break-words max-w-full">{appointments.length} patients</span>
-                  </div>
+              <h1 className="text-2xl font-bold text-base-content text-center break-words max-w-full truncate">
+                Dr. {medecin.firstName} {medecin.lastName}
+              </h1>
+              <p className="text-primary font-medium text-lg text-center mb-2 break-words max-w-full truncate">{medecin.speciality.name}</p>
+              <div className="flex items-center gap-4 mt-1 flex-wrap justify-center">
+                <div className="flex items-center gap-1">
+                  <TrendingUp className="w-4 h-4 text-warning" />
+                  <span className="text-sm break-words max-w-full">{medecin.rating}/5 ({medecin.reviews} avis)</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <Users className="w-4 h-4 text-info" />
+                  <span className="text-sm break-words max-w-full">{appointments.length} patients</span>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Statut du médecin */}
+          {/* Statut du médecin - Version modernisée */}
           {medecin && (
-            <div className="mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4 w-full">
-              <div className="flex items-center gap-3 break-words max-w-full flex-wrap">
-                <Badge variant={status === 'AVAILABLE' ? 'default' : status === 'BUSY' ? 'outline' : 'secondary'} className="text-lg px-4 py-2 break-words max-w-full truncate">
-                  {status === 'AVAILABLE' ? 'Disponible' : status === 'BUSY' ? 'Occupé' : 'Indisponible'}
-                </Badge>
-                <span className="text-base-content/70 text-sm break-words max-w-full truncate">Mode : {statusMode === 'AUTO' ? 'Automatique' : 'Manuel'}</span>
+            <div className="mb-6">
+              {/* Statut principal - Version desktop */}
+              <div className="hidden md:flex items-center justify-between gap-4 w-full mb-4">
+                <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-3">
+                    {status === 'AVAILABLE' ? (
+                      <div className="flex items-center gap-3 bg-green-100 border border-green-200 rounded-full px-6 py-3">
+                        <CheckCircle className="w-6 h-6 text-green-600" />
+                        <span className="text-green-800 font-semibold text-lg">Disponible</span>
+                      </div>
+                    ) : status === 'BUSY' ? (
+                      <div className="flex items-center gap-3 bg-orange-100 border border-orange-200 rounded-full px-6 py-3">
+                        <ClockIcon className="w-6 h-6 text-orange-600" />
+                        <span className="text-orange-800 font-semibold text-lg">Occupé</span>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-3 bg-red-100 border border-red-200 rounded-full px-6 py-3">
+                        <XCircle className="w-6 h-6 text-red-600" />
+                        <span className="text-red-800 font-semibold text-lg">Indisponible</span>
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Settings className="w-4 h-4 text-gray-500" />
+                    <span className="text-gray-600 text-sm">Mode : {statusMode === 'AUTO' ? 'Automatique' : 'Manuel'}</span>
+                  </div>
+                </div>
+                
+                <div className="flex gap-2">
+                  <Button 
+                    size="sm" 
+                    disabled={statusLoading || (status === 'AVAILABLE' && statusMode === 'MANUAL')} 
+                    onClick={() => handleStatusChange('AVAILABLE', 'MANUAL')}
+                    className="flex items-center gap-2 bg-green-500 hover:bg-green-600 text-white"
+                  >
+                    <CheckCircle className="w-4 h-4" />
+                    Disponible
+                  </Button>
+                  <Button 
+                    size="sm" 
+                    disabled={statusLoading || (status === 'BUSY' && statusMode === 'MANUAL')} 
+                    onClick={() => handleStatusChange('BUSY', 'MANUAL')}
+                    className="flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white"
+                  >
+                    <ClockIcon className="w-4 h-4" />
+                    Occupé
+                  </Button>
+                  <Button 
+                    size="sm" 
+                    disabled={statusLoading || (status === 'UNAVAILABLE' && statusMode === 'MANUAL')} 
+                    onClick={() => handleStatusChange('UNAVAILABLE', 'MANUAL')}
+                    className="flex items-center gap-2 bg-red-500 hover:bg-red-600 text-white"
+                  >
+                    <XCircle className="w-4 h-4" />
+                    Indisponible
+                  </Button>
+                  <Button 
+                    size="sm" 
+                    variant="outline" 
+                    disabled={statusLoading || statusMode === 'AUTO'} 
+                    onClick={handleAutoMode}
+                    className="flex items-center gap-2"
+                  >
+                    <Settings className="w-4 h-4" />
+                    Mode automatique
+                  </Button>
+                </div>
               </div>
-              <div className="flex gap-2 flex-wrap break-words max-w-full">
-                <Button size="sm" disabled={statusLoading || (status === 'AVAILABLE' && statusMode === 'MANUAL')} onClick={() => handleStatusChange('AVAILABLE', 'MANUAL')}>Disponible</Button>
-                <Button size="sm" disabled={statusLoading || (status === 'BUSY' && statusMode === 'MANUAL')} onClick={() => handleStatusChange('BUSY', 'MANUAL')}>Occupé</Button>
-                <Button size="sm" disabled={statusLoading || (status === 'UNAVAILABLE' && statusMode === 'MANUAL')} onClick={() => handleStatusChange('UNAVAILABLE', 'MANUAL')}>Indisponible</Button>
-                <Button size="sm" variant="outline" disabled={statusLoading || statusMode === 'AUTO'} onClick={handleAutoMode}>Mode automatique</Button>
+
+              {/* Version mobile - Statut principal */}
+              <div className="md:hidden mb-4">
+                <div className="flex items-center justify-center mb-3">
+                  {status === 'AVAILABLE' ? (
+                    <div className="flex items-center gap-2 bg-green-100 border border-green-200 rounded-full px-4 py-2">
+                      <CheckCircle className="w-5 h-5 text-green-600" />
+                      <span className="text-green-800 font-semibold">Disponible</span>
+                    </div>
+                  ) : status === 'BUSY' ? (
+                    <div className="flex items-center gap-2 bg-orange-100 border border-orange-200 rounded-full px-4 py-2">
+                      <ClockIcon className="w-5 h-5 text-orange-600" />
+                      <span className="text-orange-800 font-semibold">Occupé</span>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2 bg-red-100 border border-red-200 rounded-full px-4 py-2">
+                      <XCircle className="w-5 h-5 text-red-600" />
+                      <span className="text-red-800 font-semibold">Indisponible</span>
+                    </div>
+                  )}
+                </div>
+                
+                <div className="flex items-center justify-center gap-2 mb-3">
+                  <Settings className="w-4 h-4 text-gray-500" />
+                  <span className="text-gray-600 text-sm">Mode : {statusMode === 'AUTO' ? 'Automatique' : 'Manuel'}</span>
+                </div>
+              </div>
+
+              {/* Version mobile - Boutons d'action */}
+              <div className="md:hidden">
+                <div className="grid grid-cols-2 gap-2 mb-2">
+                  <Button 
+                    size="sm" 
+                    disabled={statusLoading || (status === 'AVAILABLE' && statusMode === 'MANUAL')} 
+                    onClick={() => handleStatusChange('AVAILABLE', 'MANUAL')}
+                    className="flex items-center justify-center gap-2 bg-green-500 hover:bg-green-600 text-white h-12"
+                  >
+                    <CheckCircle className="w-5 h-5" />
+                    <span className="text-sm">Disponible</span>
+                  </Button>
+                  <Button 
+                    size="sm" 
+                    disabled={statusLoading || (status === 'BUSY' && statusMode === 'MANUAL')} 
+                    onClick={() => handleStatusChange('BUSY', 'MANUAL')}
+                    className="flex items-center justify-center gap-2 bg-orange-500 hover:bg-orange-600 text-white h-12"
+                  >
+                    <ClockIcon className="w-5 h-5" />
+                    <span className="text-sm">Occupé</span>
+                  </Button>
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <Button 
+                    size="sm" 
+                    disabled={statusLoading || (status === 'UNAVAILABLE' && statusMode === 'MANUAL')} 
+                    onClick={() => handleStatusChange('UNAVAILABLE', 'MANUAL')}
+                    className="flex items-center justify-center gap-2 bg-red-500 hover:bg-red-600 text-white h-12"
+                  >
+                    <XCircle className="w-5 h-5" />
+                    <span className="text-sm">Indisponible</span>
+                  </Button>
+                  <Button 
+                    size="sm" 
+                    variant="outline" 
+                    disabled={statusLoading || statusMode === 'AUTO'} 
+                    onClick={handleAutoMode}
+                    className="flex items-center justify-center gap-2 h-12"
+                  >
+                    <Settings className="w-5 h-5" />
+                    <span className="text-sm">Auto</span>
+                  </Button>
+                </div>
               </div>
             </div>
           )}
 
           {/* Stats Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8 w-full">
+          <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-2 sm:gap-4 mb-8 w-full overflow-x-auto">
             <Card className="card bg-base-100 shadow-md max-w-full">
               <CardContent className="p-6">
                 <div className="flex items-center justify-between break-words max-w-full">
@@ -489,7 +614,7 @@ const MedecinDashboard = () => {
           </div>
 
           {/* Rendez-vous du jour */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 w-full">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8 w-full">
             <Card className="card bg-base-100 shadow-md max-w-full">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 break-words max-w-full truncate">
@@ -546,36 +671,20 @@ const MedecinDashboard = () => {
               <CardHeader>
                 <CardTitle className="break-words max-w-full truncate">Actions rapides</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4 break-words max-w-full">
-                <Button 
-                  className="w-full justify-start break-words max-w-full" 
-                  variant="outline"
-                  onClick={() => handleQuickAction('medical-records')}
-                >
+              <CardContent className="space-y-2 break-words max-w-full">
+                <Button className="w-full justify-start break-words max-w-full py-2 px-2 text-sm h-10" variant="outline" onClick={() => handleQuickAction('medical-records')}>
                   <FileText className="w-4 h-4 mr-2" />
                   Consulter mes dossiers
                 </Button>
-                <Button 
-                  className="w-full justify-start break-words max-w-full" 
-                  variant="outline"
-                  onClick={() => handleQuickAction('appointment')}
-                >
+                <Button className="w-full justify-start break-words max-w-full py-2 px-2 text-sm h-10" variant="outline" onClick={() => handleQuickAction('appointment')}>
                   <Calendar className="w-4 h-4 mr-2" />
                   Gérer mon planning
                 </Button>
-                <Button 
-                  className="w-full justify-start break-words max-w-full" 
-                  variant="outline"
-                  onClick={() => handleQuickAction('calls')}
-                >
+                <Button className="w-full justify-start break-words max-w-full py-2 px-2 text-sm h-10" variant="outline" onClick={() => handleQuickAction('calls')}>
                   <Phone className="w-4 h-4 mr-2" />
                   Appels en attente
                 </Button>
-                <Button 
-                  className="w-full justify-start break-words max-w-full" 
-                  variant="outline"
-                  onClick={() => handleQuickAction('messages')}
-                >
+                <Button className="w-full justify-start break-words max-w-full py-2 px-2 text-sm h-10" variant="outline" onClick={() => handleQuickAction('messages')}>
                   <Mail className="w-4 h-4 mr-2" />
                   Messages patients
                 </Button>
@@ -614,14 +723,31 @@ const MedecinDashboard = () => {
                               {(workingHoursByDay[dayIdx] || []).map((wh) => (
                                 <div key={wh.id} className="flex items-center gap-2 bg-base-100 border border-base-300 rounded-lg px-2 py-1">
                                   <span className="badge badge-outline bg-base-100">{wh.startTime} - {wh.endTime}</span>
-                                  <Button size="sm" variant="outline" onClick={() => setWhEdit({id: wh.id, dayOfWeek: wh.dayOfWeek, startTime: wh.startTime, endTime: wh.endTime})}>✏️</Button>
-                                  <Button size="sm" variant="destructive" onClick={() => handleWhDelete(wh.id)}>🗑️</Button>
+                                  <Button size="sm" variant="outline" onClick={() => setWhEdit({id: wh.id, dayOfWeek: wh.dayOfWeek, startTime: wh.startTime, endTime: wh.endTime})} className="hidden md:flex">
+                                    <Edit className="w-3 h-3" />
+                                  </Button>
+                                  <Button size="sm" variant="destructive" onClick={() => handleWhDelete(wh.id)} className="hidden md:flex">
+                                    <Trash2 className="w-3 h-3" />
+                                  </Button>
+                                  {/* Version mobile avec icônes */}
+                                  <Button size="sm" variant="outline" onClick={() => setWhEdit({id: wh.id, dayOfWeek: wh.dayOfWeek, startTime: wh.startTime, endTime: wh.endTime})} className="md:hidden">
+                                    ✏️
+                                  </Button>
+                                  <Button size="sm" variant="destructive" onClick={() => handleWhDelete(wh.id)} className="md:hidden">
+                                    🗑️
+                                  </Button>
                                 </div>
                               ))}
                             </div>
                           </td>
                           <td className="px-6 py-3 w-1/5 text-right">
-                            <Button size="sm" className="btn btn-primary" onClick={() => setWhEdit({dayOfWeek: dayIdx, startTime: '09:00', endTime: '17:00'})}>Ajouter un créneau</Button>
+                            <Button size="sm" className="btn btn-primary hidden md:flex" onClick={() => setWhEdit({dayOfWeek: dayIdx, startTime: '09:00', endTime: '17:00'})}>
+                              <Plus className="w-3 h-3 mr-1" />
+                              Ajouter un créneau
+                            </Button>
+                            <Button size="sm" className="btn btn-primary md:hidden" onClick={() => setWhEdit({dayOfWeek: dayIdx, startTime: '09:00', endTime: '17:00'})}>
+                              <Plus className="w-4 h-4" />
+                            </Button>
                           </td>
                         </tr>
                       ))}
@@ -650,7 +776,9 @@ const MedecinDashboard = () => {
                         <input type="time" className="input input-bordered w-full" value={whEdit.endTime} onChange={e => setWhEdit({...whEdit, endTime: e.target.value})} />
                       </div>
                       <div className="flex gap-2 justify-end md:col-span-2">
-                        <Button className="btn btn-success" type="submit" disabled={whLoading}>Enregistrer</Button>
+                        <Button className="btn btn-success" type="submit" disabled={whLoading}>
+                          {whLoading ? 'Enregistrement...' : 'Enregistrer'}
+                        </Button>
                         <Button className="btn btn-outline" type="button" onClick={() => setWhEdit(null)} disabled={whLoading}>Annuler</Button>
                       </div>
                     </form>
@@ -664,27 +792,35 @@ const MedecinDashboard = () => {
           <Card className="my-8 bg-base-100 shadow-md max-w-full">
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-lg break-words max-w-full truncate">
-                <Clock className="w-5 h-5 text-error" />
+                <AlertTriangle className="w-5 h-5 text-error" />
                 Absences, vacances et exceptions
               </CardTitle>
               <p className="text-base-content/70 text-sm mt-2 break-words max-w-full">Ajoutez vos périodes d&apos;indisponibilité (vacances, absences, jours fériés, etc.). Ces exceptions primeront sur vos créneaux récurrents.</p>
             </CardHeader>
             <CardContent>
               {exceptionError && toast.error(exceptionError, { position: 'top-center' })}
-              <div className="flex flex-col md:flex-row gap-4 items-end mb-4">
-                <div>
-                  <label className="block mb-1 font-medium">Début</label>
-                  <input type="date" className="input input-bordered w-full" value={exceptionEdit.startDate} onChange={e => setExceptionEdit({...exceptionEdit, startDate: e.target.value})} />
+              {/* Formulaire d'ajout d'exception - version mobile améliorée */}
+              <div className="flex flex-col gap-4 items-end mb-4">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 w-full">
+                  <div>
+                    <label className="block mb-1 font-medium">Début</label>
+                    <input type="date" className="input input-bordered w-full" value={exceptionEdit.startDate} onChange={e => setExceptionEdit({...exceptionEdit, startDate: e.target.value})} />
+                  </div>
+                  <div>
+                    <label className="block mb-1 font-medium">Fin</label>
+                    <input type="date" className="input input-bordered w-full" value={exceptionEdit.endDate} onChange={e => setExceptionEdit({...exceptionEdit, endDate: e.target.value})} />
+                  </div>
+                  <div>
+                    <label className="block mb-1 font-medium">Motif (optionnel)</label>
+                    <input type="text" className="input input-bordered w-full" placeholder="Vacances, Congé, ..." value={exceptionEdit.reason} onChange={e => setExceptionEdit({...exceptionEdit, reason: e.target.value})} />
+                  </div>
+                  <div className="flex items-end">
+                    <Button className="btn btn-error w-full md:w-auto" onClick={handleAddException}>
+                      <Plus className="w-4 h-4 mr-1 hidden md:inline" />
+                      Ajouter
+                    </Button>
+                  </div>
                 </div>
-                <div>
-                  <label className="block mb-1 font-medium">Fin</label>
-                  <input type="date" className="input input-bordered w-full" value={exceptionEdit.endDate} onChange={e => setExceptionEdit({...exceptionEdit, endDate: e.target.value})} />
-                </div>
-                <div>
-                  <label className="block mb-1 font-medium">Motif (optionnel)</label>
-                  <input type="text" className="input input-bordered w-full" placeholder="Vacances, Congé, ..." value={exceptionEdit.reason} onChange={e => setExceptionEdit({...exceptionEdit, reason: e.target.value})} />
-                </div>
-                <Button className="btn btn-error" onClick={handleAddException}>Ajouter</Button>
               </div>
               <div className="overflow-x-auto">
                 <table className="table w-full">
@@ -701,10 +837,20 @@ const MedecinDashboard = () => {
                     )}
                     {exceptions.map((ex) => (
                       <tr key={ex.id} className="hover:bg-base-200/60 transition-all">
-                        <td className="px-6 py-3 w-2/5">{ex.startDate} → {ex.endDate}</td>
+                        <td className="px-6 py-3 w-2/5">
+                          <div className="flex items-center gap-2">
+                            <CalendarDays className="w-4 h-4 text-primary hidden md:inline" />
+                            {ex.startDate} → {ex.endDate}
+                          </div>
+                        </td>
                         <td className="px-6 py-3 w-2/5">{ex.reason || '-'}</td>
                         <td className="px-6 py-3 w-1/5 text-right">
-                          <Button size="sm" variant="destructive" onClick={() => handleDeleteException(ex.id)}>🗑️</Button>
+                          <Button size="sm" variant="destructive" onClick={() => handleDeleteException(ex.id)} className="hidden md:flex">
+                            <Trash2 className="w-3 h-3" />
+                          </Button>
+                          <Button size="sm" variant="destructive" onClick={() => handleDeleteException(ex.id)} className="md:hidden">
+                            🗑️
+                          </Button>
                         </td>
                       </tr>
                     ))}

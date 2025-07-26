@@ -118,25 +118,37 @@ const ProfileSection = () => {
 
   const handlePhotoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
+    console.log('[handlePhotoChange] Fichier sélectionné:', file);
     if (!file || !user?.id) return;
 
     try {
-      // Créer un FormData pour l'upload
       const formData = new FormData();
       formData.append('file', file);
 
-      // Upload vers votre service de stockage (par exemple Cloudinary ou un endpoint personnalisé)
-      const uploadResponse = await fetch('/api/upload', {
+      // Choisir la bonne route d'upload selon le rôle
+      const uploadUrl = user?.role === 'PATIENT' ? '/api/patient/upload' : '/api/upload';
+      console.log(`[handlePhotoChange] Envoi du fichier à ${uploadUrl}...`);
+      const uploadResponse = await fetch(uploadUrl, {
         method: 'POST',
         body: formData
       });
+      console.log('[handlePhotoChange] Status réponse API:', uploadResponse.status);
+      let uploadBody;
+      try {
+        uploadBody = await uploadResponse.clone().json();
+        console.log('[handlePhotoChange] Body réponse API:', uploadBody);
+      } catch (err) {
+        console.log('[handlePhotoChange] Erreur parsing JSON réponse API:', err);
+      }
 
       if (!uploadResponse.ok) throw new Error('Erreur lors de l\'upload');
 
-      const { url } = await uploadResponse.json();
+      const { url } = uploadBody;
+      console.log('[handlePhotoChange] URL reçue:', url);
 
       // Mettre à jour la photo dans la base de données
       const result = await updateProfilePhoto(user.id, url);
+      console.log('[handlePhotoChange] Résultat updateProfilePhoto:', result);
 
       if (result.success) {
         setFormData(prev => ({ ...prev, photo: url }));
@@ -155,7 +167,8 @@ const ProfileSection = () => {
       } else {
         throw new Error(result.error);
       }
-    } catch {
+    } catch (e) {
+      console.log('[handlePhotoChange] Erreur catchée:', e);
       toast({
         title: "Erreur",
         description: "Impossible de mettre à jour la photo de profil.",

@@ -890,19 +890,27 @@ export async function updateProfilePhoto(userId: number, photoUrl: string) {
     });
 
     if (!user) {
+      console.error('[updateProfilePhoto] Utilisateur non trouvé pour userId:', userId);
       return { success: false, error: 'Utilisateur non trouvé.' };
     }
 
     if (user.patient) {
-      await prisma.patient.update({
+      console.log('[updateProfilePhoto] Patient trouvé pour userId:', userId, '-> patient.id:', user.patient.id);
+      const updated = await prisma.patient.update({
         where: { userId: userId },
         data: { photo: photoUrl }
       });
+      console.log('[updateProfilePhoto] Patient mis à jour:', updated);
     } else if (user.medecin) {
-      await prisma.medecin.update({
+      console.log('[updateProfilePhoto] Médecin trouvé pour userId:', userId, '-> medecin.id:', user.medecin.id);
+      const updated = await prisma.medecin.update({
         where: { userId: userId },
         data: { photo: photoUrl }
       });
+      console.log('[updateProfilePhoto] Médecin mis à jour:', updated);
+    } else {
+      console.error('[updateProfilePhoto] Aucun profil patient ou médecin pour userId:', userId);
+      return { success: false, error: 'Aucun profil patient ou médecin trouvé.' };
     }
 
     return { success: true, photoUrl };

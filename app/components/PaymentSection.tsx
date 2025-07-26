@@ -1,4 +1,4 @@
-import { CreditCard, Smartphone, Banknote, Shield, CheckCircle, Lock, Zap, Clock, User, ChevronDown } from 'lucide-react';
+import { Sparkles, Calendar, CheckCircle, CreditCard, Smartphone, Banknote, Lock, Shield, Zap, Clock, User, ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -49,6 +49,7 @@ const SERVICE_LIST = [
 
 const PaymentSection = () => {
   const { user, isLoading } = useAuth();
+  const searchParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
   const [patientId, setPatientId] = useState<number | null>(null);
   const [payments, setPayments] = useState<Payment[]>([]);
   const [loading, setLoading] = useState(true);
@@ -60,6 +61,15 @@ const PaymentSection = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const [formFields, setFormFields] = useState<Record<string, string>>({});
   const [formValid, setFormValid] = useState(false);
+  const [subscriptionSuccess, setSubscriptionSuccess] = useState(false);
+
+  // Lecture des paramètres d'URL pour le paiement d'abonnement
+  let amount = null, months = null, structureId = null;
+  if (typeof window !== 'undefined' && searchParams) {
+    amount = searchParams.get('amount');
+    months = searchParams.get('months');
+    structureId = searchParams.get('structureId');
+  }
 
   // Efface le message après 3 secondes
   useEffect(() => {
@@ -86,15 +96,39 @@ const PaymentSection = () => {
     }
   }, [formFields, selectedMethod]);
 
-  const openPaymentModal = () => {
-    setFormFields({});
-    setModalOpen(true);
-  };
-
   const handleFieldChange = (field: string, value: string) => {
     setFormFields((prev) => ({ ...prev, [field]: value }));
   };
 
+  // Nouvelle fonction de paiement d'abonnement
+  const handleSubscriptionPay = async () => {
+    if (!formValid || !patientId || !structureId || !amount || !user) return;
+    setPaying(true);
+    setMessage(null);
+    try {
+      // 1. Effectuer le paiement (enregistrement)
+      await createPayment({
+        patientId,
+        amount: Number(amount),
+        method: selectedMethod,
+        details: JSON.stringify(formFields).slice(0, 200),
+      });
+      // 2. Créer la souscription
+      await fetch('/api/patient/subscription', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: user.id, medicalLocationId: Number(structureId), endDate: null })
+      });
+      setMessage('Abonnement activé avec succès !');
+      setSubscriptionSuccess(true);
+    } catch (e) {
+      setMessage("Erreur lors du paiement ou de la souscription. " + ((e as Error)?.message || ''));
+      setSubscriptionSuccess(false);
+    }
+    setPaying(false);
+  };
+
+  // Remettre la fonction handleModalPay pour le paiement classique :
   const handleModalPay = async () => {
     if (!formValid) return;
     if (typeof patientId !== 'number') return;
@@ -117,6 +151,11 @@ const PaymentSection = () => {
       console.error(e);
     }
     setPaying(false);
+  };
+
+  const openPaymentModal = () => {
+    setFormFields({});
+    setModalOpen(true);
   };
 
   useEffect(() => {
@@ -195,8 +234,163 @@ const PaymentSection = () => {
   const advantages = [
     { icon: <Zap className="w-5 h-5" />, title: 'Gain de temps', description: 'Plus besoin de faire la queue', color: 'text-success' },
     { icon: <Shield className="w-5 h-5" />, title: 'Sécurité renforcée', description: 'Transactions chiffrées et traçables', color: 'text-primary' },
-    { icon: <Clock className="w-5 h-5" />, title: 'Disponibilité 24/7', description: 'Payez &apos;à tout moment', color: 'text-secondary' },
+    { icon: <Clock className="w-5 h-5" />, title: 'Disponibilité 24/7', description: 'Payez à tout moment', color: 'text-secondary' },
   ];
+
+  // Affichage conditionnel :
+  if (amount && months && structureId && !subscriptionSuccess) {
+    // Formulaire dédié abonnement
+    return (
+      <section className="section-padding bg-gradient-to-br from-base-100 to-base-200 min-h-screen flex flex-col items-center justify-center">
+        <div className="container max-w-lg mx-auto">
+          <div className="flex flex-col items-center mb-8">
+            <div className="rounded-full bg-primary/10 p-4 mb-4 animate-fade-in">
+              <Sparkles className="w-10 h-10 text-primary animate-bounce" />
+            </div>
+            <h1 className="text-3xl font-extrabold text-primary mb-2 text-center">Validez votre abonnement</h1>
+            <p className="text-base-content/70 text-center mb-2">Récapitulatif de votre forfait</p>
+            <div className="bg-base-100 rounded-xl shadow-lg p-4 flex flex-col items-center gap-2 border border-primary/20 w-full mb-4">
+              <div className="flex items-center gap-2 text-lg font-semibold text-base-content mb-1">
+                <Calendar className="w-5 h-5 text-primary" />
+                {months} mois
+              </div>
+              <div className="text-2xl font-bold text-primary mb-1">{Number(amount).toLocaleString()} FCFA</div>
+            </div>
+          </div>
+          {/* Timeline d'étapes */}
+          <ol className="relative border-l border-primary/30 mb-8">
+            <li className="mb-6 ml-6">
+              <span className="absolute flex items-center justify-center w-8 h-8 bg-primary rounded-full -left-4 ring-4 ring-base-100">
+                <CreditCard className="w-5 h-5 text-white" />
+              </span>
+              <h3 className="font-semibold text-base-content">1. Paiement sécurisé</h3>
+              <p className="text-base-content/70 text-sm">Choisissez votre méthode et validez le paiement.</p>
+            </li>
+            <li className="mb-6 ml-6">
+              <span className="absolute flex items-center justify-center w-8 h-8 bg-primary rounded-full -left-4 ring-4 ring-base-100">
+                <CheckCircle className="w-5 h-5 text-white" />
+              </span>
+              <h3 className="font-semibold text-base-content">2. Activation immédiate</h3>
+              <p className="text-base-content/70 text-sm">Votre abonnement est activé dès la validation du paiement.</p>
+            </li>
+          </ol>
+          <Card className="card bg-base-100 shadow-md max-w-full">
+            <CardHeader>
+              <CardTitle className="text-lg">Paiement de l&apos;abonnement</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6 break-words max-w-full">
+              {message && (
+                <div className={`alert ${message.includes('succès') ? 'alert-success' : 'alert-error'} mb-4 animate-fade-in`}>{message}</div>
+              )}
+              <div className="form-control">
+                <label className="label">
+                  <span className="label-text font-medium text-base-content">Méthode de paiement</span>
+                </label>
+                <select
+                  className="select select-bordered w-full"
+                  value={selectedMethod}
+                  onChange={e => setSelectedMethod(e.target.value)}
+                >
+                  {PAYMENT_METHODS.map(method => (
+                    <option key={method.key} value={method.key}>{method.label}</option>
+                  ))}
+                </select>
+              </div>
+              {/* Champs dynamiques selon la méthode */}
+              {selectedMethod === 'Mobile Money' && (
+                <div className="space-y-2">
+                  <label className="block font-medium text-base mb-1">Numéro Mobile Money</label>
+                  <Input
+                    type="tel"
+                    placeholder="Ex: 077123456"
+                    value={formFields.phone || ''}
+                    onChange={e => setFormFields(f => ({ ...f, phone: e.target.value }))}
+                    maxLength={15}
+                    className={formFields.phone && !/^\d{8,15}$/.test(formFields.phone) ? 'border-red-500' : ''}
+                  />
+                  {formFields.phone && !/^\d{8,15}$/.test(formFields.phone) && (
+                    <p className="text-xs text-red-500 mt-1">Numéro invalide (8 à 15 chiffres).</p>
+                  )}
+                </div>
+              )}
+              {selectedMethod === 'Carte bancaire' && (
+                <div className="space-y-2">
+                  <label className="block font-medium text-base mb-1">Numéro de carte</label>
+                  <Input
+                    type="text"
+                    placeholder="1234 5678 9012 3456"
+                    value={formFields.cardNumber || ''}
+                    onChange={e => setFormFields(f => ({ ...f, cardNumber: e.target.value.replace(/\D/g, '') }))}
+                    maxLength={16}
+                    className={formFields.cardNumber && !/^\d{16}$/.test(formFields.cardNumber) ? 'border-red-500' : ''}
+                  />
+                  {formFields.cardNumber && !/^\d{16}$/.test(formFields.cardNumber) && (
+                    <p className="text-xs text-red-500 mt-1">Numéro de carte invalide (16 chiffres).</p>
+                  )}
+                  <label className="block font-medium text-base mb-1 mt-2">Date d&apos;expiration (MM/AA)</label>
+                  <Input
+                    type="text"
+                    placeholder="MM/AA"
+                    value={formFields.expiry || ''}
+                    onChange={e => setFormFields(f => ({ ...f, expiry: e.target.value }))}
+                    maxLength={5}
+                    className={formFields.expiry && !/^\d{2}\/\d{2}$/.test(formFields.expiry) ? 'border-red-500' : ''}
+                  />
+                  {formFields.expiry && !/^\d{2}\/\d{2}$/.test(formFields.expiry) && (
+                    <p className="text-xs text-red-500 mt-1">Format attendu : MM/AA</p>
+                  )}
+                  <label className="block font-medium text-base mb-1 mt-2">CVC</label>
+                  <Input
+                    type="text"
+                    placeholder="123"
+                    value={formFields.cvc || ''}
+                    onChange={e => setFormFields(f => ({ ...f, cvc: e.target.value.replace(/\D/g, '') }))}
+                    maxLength={4}
+                    className={formFields.cvc && !/^\d{3,4}$/.test(formFields.cvc) ? 'border-red-500' : ''}
+                  />
+                  {formFields.cvc && !/^\d{3,4}$/.test(formFields.cvc) && (
+                    <p className="text-xs text-red-500 mt-1">CVC invalide (3 ou 4 chiffres).</p>
+                  )}
+                </div>
+              )}
+              {selectedMethod === 'Virement' && (
+                <div className="space-y-2">
+                  <label className="block font-medium text-base mb-1">IBAN</label>
+                  <Input
+                    type="text"
+                    placeholder="FR76 3000 6000 0112 3456 7890 189"
+                    value={formFields.iban || ''}
+                    onChange={e => setFormFields(f => ({ ...f, iban: e.target.value.toUpperCase() }))}
+                    maxLength={34}
+                    className={formFields.iban && !/^([A-Z0-9]{15,34})$/.test(formFields.iban) ? 'border-red-500' : ''}
+                  />
+                  {formFields.iban && !/^([A-Z0-9]{15,34})$/.test(formFields.iban) && (
+                    <p className="text-xs text-red-500 mt-1">IBAN invalide.</p>
+                  )}
+                </div>
+              )}
+              <Button className="btn btn-primary btn-lg w-full mt-4 shadow-xl hover:scale-105 transition-transform" onClick={handleSubscriptionPay} disabled={paying}>
+                {paying ? 'Paiement en cours...' : 'Valider et activer mon abonnement'}
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      </section>
+    );
+  }
+  if (amount && months && structureId && subscriptionSuccess) {
+    // Message de succès après paiement et souscription
+    return (
+      <section className="section-padding bg-base-100">
+        <div className="container max-w-lg mx-auto text-center mt-16">
+          <CheckCircle className="w-16 h-16 text-success mx-auto mb-4" />
+          <h2 className="text-2xl font-bold mb-2 text-success">Abonnement activé !</h2>
+          <p className="text-base-content/70 mb-6">Votre paiement a bien été reçu et votre abonnement est maintenant actif.</p>
+          <Button className="btn btn-primary" onClick={() => window.location.href = '/patient/dashboard'}>Accéder à mon espace</Button>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className="section-padding bg-base-100">

@@ -215,89 +215,87 @@ const PatientDashboard = () => {
   return (
     <RoleBasedRedirect allowedRoles={['PATIENT']}>
       <ProtectedLayout>
-        <div className="max-w-6xl mx-auto pt-24 pb-20 w-full">
+        <div className="max-w-6xl mx-auto pt-24 pb-20 w-full px-2 sm:px-4">
           {/* Header */}
           <div className="mb-8">
-            <div className="flex items-center gap-4 mb-4 max-w-full">
-              <Avatar className="w-16 h-16 border-4 border-primary/20">
+            <div className="flex flex-col items-center gap-2 mb-4 max-w-full">
+              <Avatar className="w-20 h-20 border-4 border-primary/20 mb-2">
                 {patient.photo ? (
                   <AvatarImage src={patient.photo} alt="Photo de profil" />
                 ) : (
-                  <AvatarFallback>{patient.firstName?.[0] || patient.email[0] || 'U'}</AvatarFallback>
+                  <AvatarFallback className="text-3xl">{patient.firstName?.[0] || patient.email[0] || 'U'}</AvatarFallback>
                 )}
               </Avatar>
-              <div className="break-words max-w-full">
-                <h1 className="text-3xl font-bold text-base-content break-words max-w-full truncate">
-                  {patient.firstName} {patient.lastName}
-                </h1>
-                <p className="text-base-content/70 break-words max-w-full">Patient</p>
-                <div className="flex items-center gap-4 mt-2 flex-wrap">
-                  <div className="flex items-center gap-1">
-                    <Calendar className="w-4 h-4 text-primary" />
-                    <span className="text-sm break-words max-w-full">{appointments.length} rendez-vous</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <Pill className="w-4 h-4 text-info" />
-                    <span className="text-sm break-words max-w-full">{prescriptions.length} prescriptions</span>
-                  </div>
+              <h1 className="text-2xl font-bold text-base-content text-center break-words max-w-full truncate">
+                {patient.firstName} {patient.lastName}
+              </h1>
+              <p className="text-base-content/70 text-center mb-2">Patient</p>
+              <div className="flex items-center gap-4 mt-1 flex-wrap justify-center">
+                <div className="flex items-center gap-1">
+                  <Calendar className="w-4 h-4 text-primary" />
+                  <span className="text-sm break-words max-w-full">{appointments.length} rendez-vous</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <Pill className="w-4 h-4 text-info" />
+                  <span className="text-sm break-words max-w-full">{prescriptions.length} prescriptions</span>
                 </div>
               </div>
             </div>
           </div>
 
           {/* Stats Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8 w-full">
+          <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-2 sm:gap-4 mb-8 w-full overflow-x-auto">
             <Card className="card bg-base-100 shadow-md max-w-full">
-              <CardContent className="p-8 min-h-[140px]">
+              <CardContent className="p-4 min-h-[90px]">
                 <div className="flex items-center justify-between break-words max-w-full">
                   <div>
-                    <p className="text-sm text-base-content/70">Prochains RDV</p>
-                    <p className="text-3xl font-bold text-primary">{upcomingAppointments.length}</p>
+                    <p className="text-xs text-base-content/70">Prochains RDV</p>
+                    <p className="text-2xl font-bold text-primary">{upcomingAppointments.length}</p>
                   </div>
-                  <Calendar className="w-10 h-10 text-primary" />
+                  <Calendar className="w-7 h-7 text-primary" />
                 </div>
               </CardContent>
             </Card>
 
             <Card className="card bg-base-100 shadow-md max-w-full">
-              <CardContent className="p-8 min-h-[140px]">
+              <CardContent className="p-4 min-h-[90px]">
                 <div className="flex items-center justify-between break-words max-w-full">
                   <div>
-                    <p className="text-sm text-base-content/70">En attente</p>
-                    <p className="text-3xl font-bold text-warning">{pendingAppointments.length}</p>
+                    <p className="text-xs text-base-content/70">En attente</p>
+                    <p className="text-2xl font-bold text-warning">{pendingAppointments.length}</p>
                   </div>
-                  <Clock className="w-10 h-10 text-warning" />
+                  <Clock className="w-7 h-7 text-warning" />
                 </div>
               </CardContent>
             </Card>
 
             <Card className="card bg-base-100 shadow-md max-w-full">
-              <CardContent className="p-8 min-h-[140px]">
+              <CardContent className="p-4 min-h-[90px]">
                 <div className="flex items-center justify-between break-words max-w-full">
                   <div>
-                    <p className="text-sm text-base-content/70">Prescriptions</p>
-                    <p className="text-3xl font-bold text-success">{prescriptions.length}</p>
+                    <p className="text-xs text-base-content/70">Prescriptions</p>
+                    <p className="text-2xl font-bold text-success">{prescriptions.length}</p>
                   </div>
-                  <Pill className="w-10 h-10 text-success" />
+                  <Pill className="w-7 h-7 text-success" />
                 </div>
               </CardContent>
             </Card>
 
             <Card className="card bg-base-100 shadow-md max-w-full">
-              <CardContent className="p-8 min-h-[140px]">
+              <CardContent className="p-4 min-h-[90px]">
                 <div className="flex items-center justify-between break-words max-w-full">
                   <div>
-                    <p className="text-sm text-base-content/70">Total dépensé</p>
-                    <p className="text-3xl font-bold text-info">{totalSpent.toFixed(0)} FCFA</p>
+                    <p className="text-xs text-base-content/70">Total dépensé</p>
+                    <p className="text-2xl font-bold text-info">{totalSpent.toFixed(0)} FCFA</p>
                   </div>
-                  <CreditCard className="w-10 h-10 text-info" />
+                  <CreditCard className="w-7 h-7 text-info" />
                 </div>
               </CardContent>
             </Card>
           </div>
 
           {/* Content Grid */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 w-full">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8 w-full">
             {/* Prochains rendez-vous */}
             <Card className="card bg-base-100 shadow-md max-w-full">
               <CardHeader>
@@ -387,41 +385,39 @@ const PatientDashboard = () => {
           {/* Actions rapides */}
           <div className="mt-8 w-full">
             <Card className="card bg-base-100 shadow-md max-w-full">
-              <CardHeader>
-                <CardTitle className="break-words max-w-full truncate">Actions rapides</CardTitle>
-              </CardHeader>
-              <CardContent className="break-words max-w-full min-h-[160px]">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 w-full">
+              <CardContent className="break-words max-w-full p-4">
+                <div className="font-semibold text-base mb-2">Actions rapides</div>
+                <div className="grid grid-cols-2 gap-2 w-full">
                   <Button 
-                    className="w-full justify-start break-words max-w-full" 
+                    className="w-full justify-start break-words max-w-full py-2 px-2 text-sm h-10" 
                     variant="outline"
                     onClick={() => handleQuickAction('appointment')}
                   >
-                    <Calendar className="w-6 h-6 mr-2" />
+                    <Calendar className="w-5 h-5 mr-2" />
                     Prendre RDV
                   </Button>
                   <Button 
-                    className="w-full justify-start break-words max-w-full" 
+                    className="w-full justify-start break-words max-w-full py-2 px-2 text-sm h-10" 
                     variant="outline"
                     onClick={() => handleQuickAction('medical-records')}
                   >
-                    <FileText className="w-6 h-6 mr-2" />
-                    Mon dossier médical
+                    <FileText className="w-5 h-5 mr-2" />
+                    Dossier
                   </Button>
                   <Button 
-                    className="w-full justify-start break-words max-w-full" 
+                    className="w-full justify-start break-words max-w-full py-2 px-2 text-sm h-10" 
                     variant="outline"
                     onClick={() => handleQuickAction('location')}
                   >
-                    <MapPin className="w-6 h-6 mr-2" />
-                    Trouver un médecin
+                    <MapPin className="w-5 h-5 mr-2" />
+                    Médecin
                   </Button>
                   <Button 
-                    className="w-full justify-start break-words max-w-full" 
+                    className="w-full justify-start break-words max-w-full py-2 px-2 text-sm h-10" 
                     variant="outline"
                     onClick={() => handleQuickAction('emergency')}
                   >
-                    <Phone className="w-6 h-6 mr-2" />
+                    <Phone className="w-5 h-5 mr-2" />
                     Urgences
                   </Button>
                 </div>

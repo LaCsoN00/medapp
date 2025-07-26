@@ -5,10 +5,12 @@ import { useRouter } from 'next/navigation';
 import { LogOut } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import Image from "next/image";
+import { useScrollVisibility } from "../../hooks/useScrollVisibility";
 
 export default function Header() {
   const { user, logout } = useAuth();
   const router = useRouter();
+  const isVisible = useScrollVisibility();
 
   const handleLogout = async () => {
     await logout();
@@ -16,7 +18,9 @@ export default function Header() {
   };
 
   return (
-    <header className="fixed top-4 left-1/2 -translate-x-1/2 z-50 w-[95vw] max-w-3xl bg-white/90 shadow-lg rounded-full px-4 sm:px-6 py-3 flex items-center justify-between border border-gray-200 backdrop-blur-md">
+    <header className={`fixed top-4 left-1/2 -translate-x-1/2 z-50 w-[95vw] max-w-3xl bg-white/90 shadow-lg rounded-full px-4 sm:px-6 py-3 flex items-center justify-between border border-gray-200 backdrop-blur-md transition-all duration-300 ease-in-out ${
+      isVisible ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0'
+    }`}>
       <div className="flex items-center gap-3 font-bold text-lg sm:text-xl cursor-pointer select-none max-w-[70vw] sm:max-w-none overflow-hidden">
         <Image
           src="/assets/logo-medapp.png"

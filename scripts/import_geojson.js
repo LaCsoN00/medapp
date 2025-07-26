@@ -135,8 +135,10 @@ async function main() {
     const longitude = coords[0];
     if (!name || !type || !address) continue;
     try {
-      await prisma.medicalLocation.create({
-        data: {
+      await prisma.medicalLocation.upsert({
+        where: { name_address: { name, address } },
+        update: {},
+        create: {
           name,
           type,
           address,

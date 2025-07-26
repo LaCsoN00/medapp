@@ -442,7 +442,7 @@ const MedicalRecordsSection = () => {
             {/* Medical Records Image */}
             <Card className="card bg-base-100 shadow-xl overflow-hidden max-w-full">
               <Image
-                src="/assets/medical-records.jpg"
+                src="/assets/5.jpeg"
                 alt="Dossier médical numérique"
                 width={600}
                 height={400}

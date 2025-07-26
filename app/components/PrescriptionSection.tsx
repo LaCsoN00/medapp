@@ -334,7 +334,7 @@ const PrescriptionSection = () => {
             <div className="lg:col-span-1 order-first lg:order-first">
               <Card className="card bg-base-100 shadow-xl overflow-hidden max-w-full">
                 <Image
-                  src="/assets/prescription-renewal.jpg"
+                  src="/assets/10.jpeg"
                   alt="Renouvellement d'ordonnances"
                   width={600}
                   height={400}
