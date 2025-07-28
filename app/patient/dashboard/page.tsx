@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { Calendar, Clock, FileText, Pill, CreditCard, MapPin, Phone } from 'lucide-react';
+import { Calendar, Clock, FileText, Pill, CreditCard, MapPin, Phone, Sparkles, CheckCircle } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -158,6 +158,9 @@ const PatientDashboard = () => {
       case 'emergency':
         // Pour les urgences, on pourrait ouvrir un modal ou rediriger vers une page d'urgence
         window.open('tel:15', '_blank');
+        break;
+      case 'subscription':
+        router.push('/payment/subscribe');
         break;
       default:
         break;
@@ -421,6 +424,47 @@ const PatientDashboard = () => {
                     Urgences
                   </Button>
                 </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Section Abonnement Premium */}
+          <div className="mt-8 w-full">
+            <Card className="card bg-gradient-to-br from-primary/10 to-secondary/10 shadow-md max-w-full border-2 border-primary/20">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 break-words max-w-full truncate">
+                  <Sparkles className="w-5 h-5 text-primary" />
+                  Abonnement Premium
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="break-words max-w-full">
+                <div className="text-sm text-base-content/70 mb-4">
+                  Débloquez toutes les fonctionnalités sans restriction avec un abonnement adapté à vos besoins.
+                </div>
+                <div className="grid grid-cols-2 gap-4 mb-4">
+                  <div className="flex items-center gap-2 text-sm">
+                    <CheckCircle className="w-4 h-4 text-success" />
+                    <span>Accès illimité</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-sm">
+                    <CheckCircle className="w-4 h-4 text-success" />
+                    <span>Examens sans limite</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-sm">
+                    <CheckCircle className="w-4 h-4 text-success" />
+                    <span>Prescriptions illimitées</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-sm">
+                    <CheckCircle className="w-4 h-4 text-success" />
+                    <span>Support prioritaire</span>
+                  </div>
+                </div>
+                <Button 
+                  className="btn btn-primary w-full" 
+                  onClick={() => router.push('/payment/subscribe')}
+                >
+                  Voir les abonnements
+                </Button>
               </CardContent>
             </Card>
           </div>

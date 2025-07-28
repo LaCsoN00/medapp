@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '../../hooks/useAuth';
-import { Calendar, FileText, MapPin, LayoutDashboard, FolderOpen, User, CreditCard } from 'lucide-react';
+import { Calendar, FileText, MapPin, LayoutDashboard, FolderOpen, User, CreditCard, Microscope } from 'lucide-react';
 import { useScrollVisibility } from '../../hooks/useScrollVisibility';
 
 const BottomNavBar = () => {
@@ -16,7 +16,7 @@ const BottomNavBar = () => {
     const medecinNavItems = [
       { href: '/medecin/dashboard', icon: <LayoutDashboard className="w-5 h-5 sm:w-6 sm:h-6" />, label: 'Dashboard' },
       { href: '/appointment', icon: <Calendar className="w-5 h-5 sm:w-6 sm:h-6" />, label: 'Rendez-vous' },
-      { href: '/medical-records', icon: <FolderOpen className="w-5 h-5 sm:w-6 sm:h-6" />, label: 'Dossiers' },
+      { href: '/medecin/dossier', icon: <FolderOpen className="w-5 h-5 sm:w-6 sm:h-6" />, label: 'Dossiers' },
       { href: '/prescription', icon: <FileText className="w-5 h-5 sm:w-6 sm:h-6" />, label: 'Ordonnances' },
       { href: '/location', icon: <MapPin className="w-5 h-5 sm:w-6 sm:h-6" />, label: 'Localisation' },
       { href: '/medecin/profile', icon: <User className="w-5 h-5 sm:w-6 sm:h-6" />, label: 'Profil' },
@@ -46,8 +46,9 @@ const BottomNavBar = () => {
   const patientNavItems = [
     { href: '/patient/dashboard', icon: <LayoutDashboard className="w-5 h-5 sm:w-6 sm:h-6" />, label: 'Dashboard' },
     { href: '/appointment', icon: <Calendar className="w-5 h-5 sm:w-6 sm:h-6" />, label: 'Rendez-vous' },
-    { href: '/medical-records', icon: <FolderOpen className="w-5 h-5 sm:w-6 sm:h-6" />, label: 'Dossiers' },
+    { href: '/patient/dossier', icon: <FolderOpen className="w-5 h-5 sm:w-6 sm:h-6" />, label: 'Mon dossier' },
     { href: '/prescription', icon: <FileText className="w-5 h-5 sm:w-6 sm:h-6" />, label: 'Ordonnances' },
+    { href: '/medical-exams', icon: <Microscope className="w-5 h-5 sm:w-6 sm:h-6" />, label: 'Examens' },
     { href: '/location', icon: <MapPin className="w-5 h-5 sm:w-6 sm:h-6" />, label: 'Localisation' },
     { href: '/payment', icon: <CreditCard className="w-5 h-5 sm:w-6 sm:h-6" />, label: 'Paiement' },
     { href: '/patient/profile', icon: <User className="w-5 h-5 sm:w-6 sm:h-6" />, label: 'Profil' },

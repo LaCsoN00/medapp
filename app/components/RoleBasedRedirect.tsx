@@ -21,7 +21,7 @@ const RoleBasedRedirect = ({ children, allowedRoles }: RoleBasedRedirectProps) =
         MEDECIN: [
           '/medecin/dashboard',
           '/appointment',
-          '/medical-records',
+          '/medecin/dossier',
           '/prescription',
           '/location',
           '/payment',
@@ -30,7 +30,7 @@ const RoleBasedRedirect = ({ children, allowedRoles }: RoleBasedRedirectProps) =
         DOCTEUR: [
           '/medecin/dashboard',
           '/appointment',
-          '/medical-records',
+          '/medecin/dossier',
           '/prescription',
           '/location',
           '/payment',
@@ -38,11 +38,13 @@ const RoleBasedRedirect = ({ children, allowedRoles }: RoleBasedRedirectProps) =
         ],
         PATIENT: [
           '/patient/dashboard',
+          '/patient/dossier',
           '/appointment',
           '/medical-records',
           '/prescription',
           '/location',
           '/payment',
+          '/payment/subscribe',
           '/patient/profile'
         ]
       };

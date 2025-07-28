@@ -38,7 +38,7 @@ const RoleBasedNavigation = () => {
                   <Calendar className="w-4 h-4" />
                   Rendez-vous
                 </Link>
-                <Link href="/medical-records" className="flex items-center gap-2 hover:text-primary transition-colors">
+                <Link href="/medecin/dossier" className="flex items-center gap-2 hover:text-primary transition-colors">
                   <Pill className="w-4 h-4" />
                   Dossiers
                 </Link>
@@ -53,6 +53,10 @@ const RoleBasedNavigation = () => {
                 <Link href="/medecin/profile" className="flex items-center gap-2 hover:text-primary transition-colors">
                   <Settings className="w-4 h-4" />
                   Profil
+                </Link>
+                <Link href="/medical-exams" className="flex items-center gap-2 hover:text-primary transition-colors">
+                  <FileText className="w-4 h-4" />
+                  Examens médicaux
                 </Link>
               </div>
             </div>
@@ -101,13 +105,17 @@ const RoleBasedNavigation = () => {
                   <Calendar className="w-4 h-4" />
                   Prendre RDV
                 </Link>
-                <Link href="/medical-records" className="flex items-center gap-2 hover:text-primary transition-colors">
+                <Link href="/patient/dossier" className="flex items-center gap-2 hover:text-primary transition-colors">
                   <Pill className="w-4 h-4" />
-                  Dossier médical
+                  Mon dossier
                 </Link>
                 <Link href="/prescription" className="flex items-center gap-2 hover:text-primary transition-colors">
                   <FileText className="w-4 h-4" />
                   Ordonnances
+                </Link>
+                <Link href="/medical-exams" className="flex items-center gap-2 hover:text-primary transition-colors">
+                  <FileText className="w-4 h-4" />
+                  Examens médicaux
                 </Link>
                 <Link href="/payment" className="flex items-center gap-2 hover:text-primary transition-colors">
                   <CreditCard className="w-4 h-4" />

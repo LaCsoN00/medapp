@@ -15,17 +15,29 @@ export async function POST(request: Request) {
     }
 
     // Vérifier le type de fichier
-    if (!file.type.startsWith('image/')) {
+    const allowedTypes = [
+      'image/jpeg', 
+      'image/png', 
+      'image/gif', 
+      'image/webp', 
+      'application/pdf',
+      'application/msword', 
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'application/vnd.ms-excel',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    ];
+    
+    if (!allowedTypes.includes(file.type)) {
       return NextResponse.json(
-        { error: 'Le fichier doit être une image.' },
+        { error: 'Type de fichier non autorisé. Types acceptés: images, PDF, Word et Excel.' },
         { status: 400 }
       );
     }
 
-    // Limiter la taille du fichier (par exemple 5MB)
-    if (file.size > 5 * 1024 * 1024) {
+    // Limiter la taille du fichier (par exemple 10MB)
+    if (file.size > 10 * 1024 * 1024) {
       return NextResponse.json(
-        { error: 'Le fichier est trop volumineux (max 5MB).' },
+        { error: 'Le fichier est trop volumineux (max 10MB).' },
         { status: 400 }
       );
     }
@@ -41,10 +53,17 @@ export async function POST(request: Request) {
     const path = join(process.cwd(), 'public/uploads', filename);
     await writeFile(path, buffer);
     
-    // Retourner l'URL relative
+    // Retourner l'URL relative et le type de fichier
     const url = `/uploads/${filename}`;
+    const fileType = file.type;
+    const fileName = file.name;
 
-    return NextResponse.json({ url });
+    return NextResponse.json({ 
+      url,
+      fileType,
+      fileName,
+      success: true
+    });
   } catch (error) {
     console.error("Erreur lors de l'upload:", error);
     return NextResponse.json(

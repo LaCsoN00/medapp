@@ -33,6 +33,7 @@ model Patient {
   appointments         Appointment[]
   healthData           HealthData[]          @relation("PatientHealthData")
   medicalRecord        MedicalRecord?
+  medicalDocuments     MedicalDocument[]
   user                 User?                 @relation(fields: [userId], references: [id])
   payments             Payment[]
   prescriptions        Prescription[]
@@ -40,6 +41,7 @@ model Patient {
   reviews              Review[]
   new_Prescription     new_Prescription[]
   subscriptions        Subscription[]
+  medicalExams         MedicalExam[]
 }
 
 model MedicalRecord {
@@ -49,6 +51,18 @@ model MedicalRecord {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   patient   Patient  @relation(fields: [patientId], references: [id])
+}
+
+model MedicalDocument {
+  id          Int      @id @default(autoincrement())
+  patientId   Int
+  type        String
+  title       String
+  description String?
+  fileUrl     String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  patient     Patient  @relation(fields: [patientId], references: [id])
 }
 
 model Appointment {
@@ -71,6 +85,7 @@ model Prescription {
   medication           String
   dosage               String
   renewal              Boolean               @default(false)
+  pendingDeletion      Boolean               @default(false)
   createdAt            DateTime              @default(now())
   medecin              Medecin               @relation(fields: [medecinId], references: [id])
   patient              Patient               @relation(fields: [patientId], references: [id])
@@ -138,6 +153,7 @@ model Medecin {
   prescriptionRequests PrescriptionRequest[]
   reviews_list         Review[]
   new_Prescription     new_Prescription[]
+  medicalExams         MedicalExam[]
 }
 
 model MedecinWorkingHour {
@@ -217,9 +233,12 @@ model Subscription {
   id               Int              @id @default(autoincrement())
   patientId        Int
   medicalLocationId Int
+  type             String           @default("INDIVIDUAL") // INDIVIDUAL, FAMILY, STRUCTURE
   startDate        DateTime         @default(now())
   endDate          DateTime?
   status           String           @default("ACTIVE") // ACTIVE, CANCELLED, EXPIRED, etc.
+  familyMembers    String?          // JSON string contenant les IDs des membres de la famille
+  structureDetails String?          // Détails de la structure (pour type STRUCTURE)
   createdAt        DateTime         @default(now())
   updatedAt        DateTime         @updatedAt
 
@@ -227,4 +246,32 @@ model Subscription {
   medicalLocation  MedicalLocation  @relation(fields: [medicalLocationId], references: [id])
 
   @@unique([patientId, medicalLocationId])
+}
+
+model MedicalExam {
+  id           Int          @id @default(autoincrement())
+  patientId    Int
+  medecinId    Int
+  name         String
+  description  String
+  status       String       @default("PENDING") // PENDING, COMPLETED, CANCELLED
+  date         DateTime     @default(now())
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  patient      Patient      @relation(fields: [patientId], references: [id])
+  medecin      Medecin      @relation(fields: [medecinId], references: [id])
+  results      ExamResult[]
+}
+
+model ExamResult {
+  id           Int         @id @default(autoincrement())
+  examId       Int
+  title        String
+  content      String
+  fileUrl      String?
+  fileType     String?
+  fileName     String?
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+  exam         MedicalExam @relation(fields: [examId], references: [id])
 }

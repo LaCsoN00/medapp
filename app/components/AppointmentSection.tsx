@@ -15,6 +15,7 @@ import Image from 'next/image';
 import { getSpecialities, getMedecins, createAppointment, getPatientByUserId, getAppointments, getMedecinWorkingHours } from '@/actions';
 import { useAuth } from '../../hooks/useAuth';
 import { useRouter } from 'next/navigation';
+import { useMessaging } from './ProtectedLayout';
 
 // @ts-expect-error: Pas de types pour html2pdf.js, usage dynamique côté client
 declare module 'html2pdf.js';
@@ -68,6 +69,7 @@ interface Medecin {
 const AppointmentSection = () => {
   const { user, isLoading } = useAuth();
   const { toast } = useToast();
+  const { openMessaging } = useMessaging();
   const [specialities, setSpecialities] = useState<Speciality[]>([]);
   const [medecins, setMedecins] = useState<Medecin[]>([]);
   const [filteredMedecins, setFilteredMedecins] = useState<Medecin[]>([]);
@@ -532,6 +534,10 @@ const AppointmentSection = () => {
     }
   };
 
+  const handleOpenMessagingWithPatient = (patientId: number) => {
+    openMessaging(patientId);
+  };
+
   // Traduction du statut
   const getStatusText = (status: string) => {
     switch (status) {
@@ -614,7 +620,7 @@ const AppointmentSection = () => {
                       <Button className="btn btn-primary flex-1" onClick={() => appointment.patientId && router.push(`/medical-records?patientId=${appointment.patientId}`)}>
                         Voir le dossier
                       </Button>
-                      <Button variant="outline" className="btn btn-outline flex-1" onClick={() => router.push(`/messages?recipient=${appointment.patientId}`)}>
+                      <Button variant="outline" className="btn btn-outline flex-1" onClick={() => appointment.patientId && handleOpenMessagingWithPatient(appointment.patientId)}>
                         Contacter
                       </Button>
                      {appointment.status === 'PENDING' && (

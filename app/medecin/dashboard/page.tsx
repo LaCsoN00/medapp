@@ -10,8 +10,9 @@ import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import ProtectedLayout from '@/components/ProtectedLayout';
 import RoleBasedRedirect from '@/components/RoleBasedRedirect';
 import { useAuth } from '../../../hooks/useAuth';
-import { getMedecinByUserId, getAppointments, createMedecin, getSpecialities, setMedecinStatus, getMedecinStatus, getMedecinWorkingHours, createMedecinWorkingHour, updateMedecinWorkingHour, deleteMedecinWorkingHour } from '@/actions';
+import { getMedecinByUserId, getAppointments, createMedecin, getSpecialities, setMedecinStatus, getMedecinStatus, getMedecinWorkingHours, createMedecinWorkingHour, updateMedecinWorkingHour, deleteMedecinWorkingHour, updateAppointment } from '@/actions';
 import toast from 'react-hot-toast';
+import ValidationNotification from '@/components/ValidationNotification';
 
 interface Medecin {
   id: number;
@@ -162,6 +163,111 @@ const MedecinDashboard = () => {
     } catch {}
   }, []);
 
+  const handleStatusChange = async (newStatus: 'AVAILABLE' | 'BUSY' | 'UNAVAILABLE', newMode: 'AUTO' | 'MANUAL') => {
+    if (!medecin) return;
+    setStatusLoading(true);
+    try {
+      await setMedecinStatus(medecin.id, newStatus, newMode);
+      setStatus(newStatus);
+      setStatusMode(newMode);
+    } finally {
+      setStatusLoading(false);
+    }
+  };
+
+  const handleAutoMode = async () => {
+    if (!medecin) return;
+    setStatusLoading(true);
+    try {
+      await setMedecinStatus(medecin.id, 'AVAILABLE', 'AUTO');
+      setStatus('AVAILABLE');
+      setStatusMode('AUTO');
+    } finally {
+      setStatusLoading(false);
+    }
+  };
+
+  // Validation automatique des consultations basée sur la date/heure
+  const validateAppointmentsAutomatically = useCallback(async () => {
+    if (!medecin) return;
+    
+    try {
+      const now = new Date();
+      const confirmedAppointments = appointments.filter(app => 
+        app.status === 'CONFIRMED' && 
+        new Date(app.date) < now
+      );
+
+      for (const appointment of confirmedAppointments) {
+        await updateAppointment(appointment.id, { status: 'COMPLETED' });
+        console.log(`Consultation ${appointment.id} automatiquement validée`);
+      }
+
+      if (confirmedAppointments.length > 0) {
+        // Recharger les rendez-vous après validation automatique
+        const updatedAppointments = await getAppointments({ medecinId: medecin.id });
+        setAppointments(updatedAppointments);
+        
+        toast.success(`${confirmedAppointments.length} consultation(s) automatiquement validée(s)`, {
+          position: 'top-center',
+          duration: 3000
+        });
+      }
+    } catch (error) {
+      console.error('Erreur lors de la validation automatique:', error);
+    }
+  }, [medecin, appointments]);
+
+  // Validation manuelle d'une consultation
+  const handleCompleteAppointment = async (appointmentId: number) => {
+    try {
+      await updateAppointment(appointmentId, { status: 'COMPLETED' });
+      
+      // Mettre à jour la liste des rendez-vous
+      const updatedAppointments = await getAppointments({ medecinId: medecin!.id });
+      setAppointments(updatedAppointments);
+      
+      toast.success('Consultation marquée comme terminée', {
+        position: 'top-center',
+        duration: 3000
+      });
+    } catch (error) {
+      console.error('Erreur lors de la validation:', error);
+      toast.error('Erreur lors de la validation de la consultation', {
+        position: 'top-center'
+      });
+    }
+  };
+
+  // Notification de rappel pour les consultations non validées
+  const checkPendingValidations = useCallback(() => {
+    if (!medecin) return;
+    
+    const now = new Date();
+    const overdueAppointments = appointments.filter(app => 
+      app.status === 'CONFIRMED' && 
+      new Date(app.date) < now &&
+      new Date(app.date) > new Date(now.getTime() - 24 * 60 * 60 * 1000) // Dans les dernières 24h
+    );
+
+    if (overdueAppointments.length > 0) {
+      toast(
+        `Vous avez ${overdueAppointments.length} consultation(s) à valider`,
+        {
+          position: 'top-center',
+          duration: 5000,
+          icon: '⚠️'
+        }
+      );
+    }
+  }, [medecin, appointments]);
+
+  useEffect(() => {
+    if (medecin) {
+      loadStatus(medecin.id);
+    }
+  }, [medecin, loadStatus]);
+
   useEffect(() => {
     if (user && user.role === 'MEDECIN') {
       loadMedecinData();
@@ -171,11 +277,31 @@ const MedecinDashboard = () => {
     }
   }, [user, loadMedecinData]);
 
+  // Validation automatique toutes les 5 minutes
   useEffect(() => {
-    if (medecin) {
-      loadStatus(medecin.id);
-    }
-  }, [medecin, loadStatus]);
+    if (!medecin) return;
+    
+    // Validation immédiate au chargement
+    validateAppointmentsAutomatically();
+    
+    // Validation périodique
+    const interval = setInterval(validateAppointmentsAutomatically, 5 * 60 * 1000); // 5 minutes
+    
+    return () => clearInterval(interval);
+  }, [medecin, validateAppointmentsAutomatically]);
+
+  // Vérification des consultations à valider toutes les 10 minutes
+  useEffect(() => {
+    if (!medecin) return;
+    
+    // Vérification immédiate
+    checkPendingValidations();
+    
+    // Vérification périodique
+    const interval = setInterval(checkPendingValidations, 10 * 60 * 1000); // 10 minutes
+    
+    return () => clearInterval(interval);
+  }, [medecin, checkPendingValidations]);
 
   const getAppointmentsForDate = (date: Date) => {
     return appointments.filter(appointment => {
@@ -222,30 +348,6 @@ const MedecinDashboard = () => {
         break;
       default:
         break;
-    }
-  };
-
-  const handleStatusChange = async (newStatus: 'AVAILABLE' | 'BUSY' | 'UNAVAILABLE', newMode: 'AUTO' | 'MANUAL') => {
-    if (!medecin) return;
-    setStatusLoading(true);
-    try {
-      await setMedecinStatus(medecin.id, newStatus, newMode);
-      setStatus(newStatus);
-      setStatusMode(newMode);
-    } finally {
-      setStatusLoading(false);
-    }
-  };
-
-  const handleAutoMode = async () => {
-    if (!medecin) return;
-    setStatusLoading(true);
-    try {
-      await setMedecinStatus(medecin.id, 'AVAILABLE', 'AUTO');
-      setStatus('AVAILABLE');
-      setStatusMode('AUTO');
-    } finally {
-      setStatusLoading(false);
     }
   };
 
@@ -385,6 +487,7 @@ const MedecinDashboard = () => {
   const todayAppointments = getAppointmentsForDate(new Date());
   const pendingAppointments = appointments.filter(a => a.status === 'PENDING');
   const confirmedAppointments = appointments.filter(a => a.status === 'CONFIRMED');
+  const completedAppointments = appointments.filter(a => a.status === 'COMPLETED');
 
   return (
     <RoleBasedRedirect allowedRoles={['MEDECIN', 'DOCTEUR']}>
@@ -404,23 +507,9 @@ const MedecinDashboard = () => {
                 Dr. {medecin.firstName} {medecin.lastName}
               </h1>
               <p className="text-primary font-medium text-lg text-center mb-2 break-words max-w-full truncate">{medecin.speciality.name}</p>
-              <div className="flex items-center gap-4 mt-1 flex-wrap justify-center">
-                <div className="flex items-center gap-1">
-                  <TrendingUp className="w-4 h-4 text-warning" />
-                  <span className="text-sm break-words max-w-full">{medecin.rating}/5 ({medecin.reviews} avis)</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <Users className="w-4 h-4 text-info" />
-                  <span className="text-sm break-words max-w-full">{appointments.length} patients</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Statut du médecin - Version modernisée */}
-          {medecin && (
-            <div className="mb-6">
-              {/* Statut principal - Version desktop */}
+              {/* DEBUG - Affichage de la variable medecin */}
+              {/* {console.log('DEBUG medecin:', medecin)} */}
+              {/* Version desktop - visible uniquement sur md+ */}
               <div className="hidden md:flex items-center justify-between gap-4 w-full mb-4">
                 <div className="flex items-center gap-4">
                   <div className="flex items-center gap-3">
@@ -446,7 +535,6 @@ const MedecinDashboard = () => {
                     <span className="text-gray-600 text-sm">Mode : {statusMode === 'AUTO' ? 'Automatique' : 'Manuel'}</span>
                   </div>
                 </div>
-                
                 <div className="flex gap-2">
                   <Button 
                     size="sm" 
@@ -488,7 +576,7 @@ const MedecinDashboard = () => {
                 </div>
               </div>
 
-              {/* Version mobile - Statut principal */}
+              {/* Version mobile - visible uniquement sur mobile */}
               <div className="md:hidden mb-4">
                 <div className="flex items-center justify-center mb-3">
                   {status === 'AVAILABLE' ? (
@@ -508,14 +596,11 @@ const MedecinDashboard = () => {
                     </div>
                   )}
                 </div>
-                
                 <div className="flex items-center justify-center gap-2 mb-3">
                   <Settings className="w-4 h-4 text-base-content/60" />
                   <span className="text-base-content/70 text-sm">Mode : {statusMode === 'AUTO' ? 'Automatique' : 'Manuel'}</span>
                 </div>
               </div>
-
-              {/* Version mobile - Boutons d'action */}
               <div className="md:hidden">
                 <div className="grid grid-cols-2 gap-2 mb-2">
                   <Button 
@@ -559,8 +644,25 @@ const MedecinDashboard = () => {
                   </Button>
                 </div>
               </div>
+              <div className="flex items-center gap-4 mt-1 flex-wrap justify-center">
+                <div className="flex items-center gap-1">
+                  <TrendingUp className="w-4 h-4 text-warning" />
+                  <span className="text-sm break-words max-w-full">{medecin.rating}/5 ({medecin.reviews} avis)</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <Users className="w-4 h-4 text-info" />
+                  <span className="text-sm break-words max-w-full">{appointments.length} patients</span>
+                </div>
+              </div>
             </div>
-          )}
+          </div>
+
+          {/* Notification de validation des consultations */}
+          <ValidationNotification
+            pendingAppointments={confirmedAppointments.filter(app => new Date(app.date) < new Date())}
+            onValidateAll={validateAppointmentsAutomatically}
+            onValidateOne={handleCompleteAppointment}
+          />
 
           {/* Stats Cards */}
           <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-2 sm:gap-4 mb-8 w-full overflow-x-auto">
@@ -604,10 +706,10 @@ const MedecinDashboard = () => {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between break-words max-w-full">
                   <div>
-                    <p className="text-sm text-base-content/70">Note moyenne</p>
-                    <p className="text-2xl font-bold text-info">{medecin.rating}/5</p>
+                    <p className="text-sm text-base-content/70">Terminées</p>
+                    <p className="text-2xl font-bold text-info">{completedAppointments.length}</p>
                   </div>
-                  <TrendingUp className="w-8 h-8 text-info" />
+                  <CheckCircle className="w-8 h-8 text-info" />
                 </div>
               </CardContent>
             </Card>
@@ -656,9 +758,21 @@ const MedecinDashboard = () => {
                             )}
                           </div>
                         </div>
-                        <Badge variant={getStatusColor(appointment.status) as "default" | "secondary" | "destructive" | "outline"} className="break-words max-w-full truncate">
-                          {getStatusText(appointment.status)}
-                        </Badge>
+                        <div className="flex items-center gap-2">
+                          <Badge variant={getStatusColor(appointment.status) as "default" | "secondary" | "destructive" | "outline"} className="break-words max-w-full truncate">
+                            {getStatusText(appointment.status)}
+                          </Badge>
+                          {appointment.status === 'CONFIRMED' && (
+                            <Button
+                              size="sm"
+                              onClick={() => handleCompleteAppointment(appointment.id)}
+                              className="bg-success hover:bg-success-focus text-success-content"
+                            >
+                              <CheckCircle className="w-4 h-4 mr-1" />
+                              Terminer
+                            </Button>
+                          )}
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -688,9 +802,69 @@ const MedecinDashboard = () => {
                   <Mail className="w-4 h-4 mr-2" />
                   Messages patients
                 </Button>
+                {confirmedAppointments.length > 0 && (
+                  <Button 
+                    className="w-full justify-start break-words max-w-full py-2 px-2 text-sm h-10 bg-success hover:bg-success-focus text-success-content" 
+                    onClick={validateAppointmentsAutomatically}
+                  >
+                    <CheckCircle className="w-4 h-4 mr-2" />
+                    Valider ({confirmedAppointments.length})
+                  </Button>
+                )}
               </CardContent>
             </Card>
           </div>
+
+          {/* Consultations terminées récemment */}
+          {completedAppointments.length > 0 && (
+            <Card className="my-8 bg-base-100 shadow-md max-w-full">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 break-words max-w-full truncate">
+                  <CheckCircle className="w-5 h-5 text-success" />
+                  Consultations terminées récemment
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="break-words max-w-full">
+                <div className="space-y-4">
+                  {completedAppointments
+                    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+                    .slice(0, 5)
+                    .map((appointment) => (
+                      <div key={appointment.id} className="flex items-center justify-between p-4 bg-success/10 border border-success/20 rounded-lg break-words max-w-full flex-wrap">
+                        <div className="flex items-center gap-3">
+                          <Avatar className="w-10 h-10">
+                            <AvatarFallback className="bg-success text-success-content">
+                              {appointment.patient.firstName.charAt(0)}{appointment.patient.lastName.charAt(0)}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div>
+                            <p className="font-medium">
+                              {appointment.patient.firstName} {appointment.patient.lastName}
+                            </p>
+                            <p className="text-sm text-base-content/70">
+                              {new Date(appointment.date).toLocaleDateString('fr-FR', {
+                                weekday: 'long',
+                                day: 'numeric',
+                                month: 'long',
+                                year: 'numeric',
+                                hour: '2-digit',
+                                minute: '2-digit'
+                              })}
+                            </p>
+                            {appointment.reason && (
+                              <p className="text-sm text-base-content/70">{appointment.reason}</p>
+                            )}
+                          </div>
+                        </div>
+                        <Badge variant="default" className="bg-success text-success-content">
+                          Terminée
+                        </Badge>
+                      </div>
+                    ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
           {/* SECTION GESTION HORAIRES MULTI-CRÉNEAUX */}
           {medecin && (
@@ -723,30 +897,20 @@ const MedecinDashboard = () => {
                               {(workingHoursByDay[dayIdx] || []).map((wh) => (
                                 <div key={wh.id} className="flex items-center gap-2 bg-base-100 border border-base-300 rounded-lg px-2 py-1">
                                   <span className="badge badge-outline bg-base-100">{wh.startTime} - {wh.endTime}</span>
-                                  <Button size="sm" variant="outline" onClick={() => setWhEdit({id: wh.id, dayOfWeek: wh.dayOfWeek, startTime: wh.startTime, endTime: wh.endTime})} className="hidden md:flex">
+                                  <Button size="sm" variant="outline" onClick={() => setWhEdit({id: wh.id, dayOfWeek: wh.dayOfWeek, startTime: wh.startTime, endTime: wh.endTime})} className="flex">
                                     <Edit className="w-3 h-3" />
                                   </Button>
-                                  <Button size="sm" variant="destructive" onClick={() => handleWhDelete(wh.id)} className="hidden md:flex">
+                                  <Button size="sm" variant="destructive" onClick={() => handleWhDelete(wh.id)} className="flex">
                                     <Trash2 className="w-3 h-3" />
-                                  </Button>
-                                  {/* Version mobile avec icônes */}
-                                  <Button size="sm" variant="outline" onClick={() => setWhEdit({id: wh.id, dayOfWeek: wh.dayOfWeek, startTime: wh.startTime, endTime: wh.endTime})} className="md:hidden">
-                                    ✏️
-                                  </Button>
-                                  <Button size="sm" variant="destructive" onClick={() => handleWhDelete(wh.id)} className="md:hidden">
-                                    🗑️
                                   </Button>
                                 </div>
                               ))}
                             </div>
                           </td>
                           <td className="px-6 py-3 w-1/5 text-right">
-                            <Button size="sm" className="btn btn-primary hidden md:flex" onClick={() => setWhEdit({dayOfWeek: dayIdx, startTime: '09:00', endTime: '17:00'})}>
+                            <Button size="sm" className="btn btn-primary" onClick={() => setWhEdit({dayOfWeek: dayIdx, startTime: '09:00', endTime: '17:00'})}>
                               <Plus className="w-3 h-3 mr-1" />
                               Ajouter un créneau
-                            </Button>
-                            <Button size="sm" className="btn btn-primary md:hidden" onClick={() => setWhEdit({dayOfWeek: dayIdx, startTime: '09:00', endTime: '17:00'})}>
-                              <Plus className="w-4 h-4" />
                             </Button>
                           </td>
                         </tr>

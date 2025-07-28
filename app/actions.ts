@@ -1,10 +1,8 @@
 "use server"
 
-import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-
-const prisma = new PrismaClient();
+import prisma from '@/lib/prisma';
 const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret';
 
 type Role = 'PATIENT' | 'MEDECIN' | 'DOCTEUR';
@@ -252,7 +250,18 @@ export async function getMedecinByUserId(userId: number) {
       user: true,
       speciality: true,
       appointments: {
-        include: { patient: true }
+        include: { 
+          patient: {
+            include: {
+              prescriptions: true
+            }
+          } 
+        }
+      },
+      prescriptions: {
+        include: {
+          patient: true
+        }
       }
     }
   });
@@ -503,15 +512,18 @@ export async function getPrescriptionById(id: number) {
 }
 export async function getPrescriptions(filters?: { patientId?: number; medecinId?: number }) {
   const where: { patientId?: number; medecinId?: number } = {};
-  if (filters?.patientId) {
-    where.patientId = filters.patientId;
-  }
-  if (filters?.medecinId) {
-    where.medecinId = filters.medecinId;
-  }
-  return prisma.prescription.findMany({ 
+  if (filters?.patientId) where.patientId = filters.patientId;
+  if (filters?.medecinId) where.medecinId = filters.medecinId;
+  
+  return prisma.prescription.findMany({
     where,
-    include: { patient: true, medecin: true },
+    include: {
+      medecin: {
+        include: {
+          speciality: true
+        }
+      }
+    },
     orderBy: { createdAt: 'desc' }
   });
 }
@@ -591,7 +603,23 @@ export async function createMedicalRecord(data: { patientId: number; notes?: str
   return prisma.medicalRecord.create({ data });
 }
 export async function getMedicalRecordByPatientId(patientId: number) {
-  return prisma.medicalRecord.findUnique({ where: { patientId }, include: { patient: true } });
+  return prisma.medicalRecord.findUnique({ 
+    where: { patientId }, 
+    include: { 
+      patient: {
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          email: true,
+          phone: true,
+          address: true,
+          city: true,
+          photo: true
+        }
+      } 
+    }
+  });
 }
 export async function updateMedicalRecord(id: number, data: Partial<{ notes?: string }>) {
   return prisma.medicalRecord.update({ where: { id }, data });
@@ -1041,5 +1069,418 @@ export async function updateMedecinWorkingHours(medecinId: number, workingHours:
   } catch (error) {
     console.error('Erreur lors de la mise à jour des horaires:', error);
     return { success: false, error: 'Erreur lors de la mise à jour des horaires.' };
+  }
+} 
+
+/**
+ * Types d'abonnement disponibles
+ */
+export type SubscriptionType = 'INDIVIDUAL' | 'FAMILY' | 'STRUCTURE';
+
+/**
+ * Vérifie si un patient a un abonnement actif
+ * @param patientId ID du patient
+ * @param type Type d'abonnement spécifique à vérifier (optionnel)
+ * @returns Booléen indiquant si le patient a un abonnement actif
+ */
+export async function hasActiveSubscription(patientId: number, type?: SubscriptionType): Promise<boolean> {
+  try {
+    // Construire la requête de base
+    const query: {
+      patientId: number;
+      status: string;
+      type?: SubscriptionType;
+      OR: { endDate: null | { gt: Date } }[];
+    } = {
+      patientId,
+      status: 'ACTIVE',
+      OR: [
+        { endDate: null }, // Abonnement sans date de fin
+        { endDate: { gt: new Date() } } // Date de fin dans le futur
+      ]
+    };
+    
+    // Si un type spécifique est demandé, l'ajouter à la requête
+    if (type) {
+      query.type = type;
+    }
+    
+    // Vérifier si le patient a au moins un abonnement actif
+    const activeSubscription = await prisma.subscription.findFirst({
+      where: query
+    });
+    
+    return !!activeSubscription;
+  } catch (error) {
+    console.error('Erreur lors de la vérification de l\'abonnement:', error);
+    return false;
+  }
+}
+
+/**
+ * Vérifie si un patient peut accéder à une fonctionnalité
+ * @param patientId ID du patient
+ * @param feature Nom de la fonctionnalité à vérifier
+ * @returns Booléen indiquant si le patient peut accéder à la fonctionnalité
+ */
+export async function canAccessFeature(patientId: number, feature: 'medical_exams' | 'prescriptions' | 'medical_records' | 'appointments'): Promise<boolean> {
+  // Pour les abonnés, toutes les fonctionnalités sont disponibles sans restriction
+  const hasSubscription = await hasActiveSubscription(patientId);
+  if (hasSubscription) {
+    return true;
+  }
+  
+  // Vérifier si le patient existe
+  const patient = await prisma.patient.findUnique({
+    where: { id: patientId }
+  });
+  
+  if (!patient) return false;
+  
+  // Appliquer des restrictions selon la fonctionnalité
+  switch (feature) {
+    case 'medical_exams': {
+      // Limiter à 2 examens médicaux par mois pour les non-abonnés
+      const examCount = await prisma.medicalExam.count({
+        where: {
+          patientId,
+          createdAt: {
+            gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) // 30 derniers jours
+          }
+        }
+      });
+      return examCount < 2;
+    }
+    
+    case 'prescriptions': {
+      // Limiter à 3 prescriptions par mois pour les non-abonnés
+      const prescriptionCount = await prisma.prescription.count({
+        where: {
+          patientId,
+          createdAt: {
+            gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) // 30 derniers jours
+          }
+        }
+      });
+      return prescriptionCount < 3;
+    }
+    
+    case 'medical_records':
+      // Accès limité aux dossiers médicaux (consultation uniquement)
+      return true; // Accès en lecture seule géré côté frontend
+    
+    case 'appointments': {
+      // Limiter à 1 rendez-vous par mois pour les non-abonnés
+      const appointmentCount = await prisma.appointment.count({
+        where: {
+          patientId,
+          createdAt: {
+            gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) // 30 derniers jours
+          }
+        }
+      });
+      return appointmentCount < 1;
+    }
+    
+    default:
+      return false;
+  }
+}
+
+/**
+ * Crée un nouvel abonnement pour un patient
+ * @param data Données de l'abonnement
+ * @returns L'abonnement créé
+ */
+export async function createSubscription(data: { 
+  patientId: number; 
+  medicalLocationId: number; 
+  type: SubscriptionType;
+  endDate?: Date | null;
+  familyMembers?: number[]; // IDs des patients membres de la famille (pour type FAMILY)
+  structureDetails?: string; // Détails de la structure (pour type STRUCTURE)
+}) {
+  // Vérifier si un abonnement actif existe déjà
+  const existingSubscription = await prisma.subscription.findFirst({
+    where: {
+      patientId: data.patientId,
+      status: 'ACTIVE',
+      OR: [
+        { endDate: null },
+        { endDate: { gt: new Date() } }
+      ]
+    }
+  });
+
+  if (existingSubscription) {
+    // Mettre à jour l'abonnement existant
+    return prisma.subscription.update({
+      where: { id: existingSubscription.id },
+      data: {
+        medicalLocationId: data.medicalLocationId,
+        type: data.type,
+        endDate: data.endDate,
+        familyMembers: data.familyMembers ? JSON.stringify(data.familyMembers) : undefined,
+        structureDetails: data.structureDetails
+      }
+    });
+  } else {
+    // Créer un nouvel abonnement
+    return prisma.subscription.create({
+      data: {
+        patientId: data.patientId,
+        medicalLocationId: data.medicalLocationId,
+        type: data.type,
+        status: 'ACTIVE',
+        startDate: new Date(),
+        endDate: data.endDate,
+        familyMembers: data.familyMembers ? JSON.stringify(data.familyMembers) : undefined,
+        structureDetails: data.structureDetails
+      }
+    });
+  }
+}
+
+// --- MEDICAL EXAMS ---
+export async function createMedicalExam(data: { 
+  patientId: number; 
+  medecinId: number; 
+  name: string; 
+  description: string; 
+  status?: string;
+  date?: Date;
+}) {
+  return prisma.medicalExam.create({ 
+    data,
+    include: { 
+      patient: true,
+      medecin: true
+    }
+  });
+}
+
+export async function getMedicalExamById(id: number) {
+  return prisma.medicalExam.findUnique({ 
+    where: { id },
+    include: { 
+      patient: true,
+      medecin: true,
+      results: true
+    }
+  });
+}
+
+export async function getMedicalExams(filters?: { 
+  patientId?: number; 
+  medecinId?: number;
+  status?: string;
+}) {
+  const where: {
+    patientId?: number;
+    medecinId?: number;
+    status?: string;
+  } = {};
+  
+  if (filters?.patientId) where.patientId = filters.patientId;
+  if (filters?.medecinId) where.medecinId = filters.medecinId;
+  if (filters?.status) where.status = filters.status;
+
+  return prisma.medicalExam.findMany({
+    where,
+    include: { 
+      patient: true,
+      medecin: true,
+      results: true
+    },
+    orderBy: { date: 'desc' }
+  });
+}
+
+export async function updateMedicalExam(id: number, data: Partial<{ 
+  name: string; 
+  description: string; 
+  status: string;
+  date: Date;
+}>) {
+  return prisma.medicalExam.update({ 
+    where: { id },
+    data,
+    include: { 
+      patient: true,
+      medecin: true,
+      results: true
+    }
+  });
+}
+
+export async function deleteMedicalExam(id: number) {
+  return prisma.medicalExam.delete({ where: { id } });
+}
+
+// --- EXAM RESULTS ---
+export async function createExamResult(data: { 
+  examId: number; 
+  title: string; 
+  content: string;
+  fileUrl?: string;
+  fileType?: string;
+  fileName?: string;
+}) {
+  return prisma.examResult.create({ 
+    data: {
+      examId: data.examId,
+      title: data.title,
+      content: data.content,
+      fileUrl: data.fileUrl,
+      fileType: data.fileType,
+      fileName: data.fileName
+    } 
+  });
+}
+
+export async function getExamResultById(id: number) {
+  return prisma.examResult.findUnique({ 
+    where: { id },
+    include: { exam: true }
+  });
+}
+
+export async function getExamResults(examId: number) {
+  return prisma.examResult.findMany({
+    where: { examId },
+    orderBy: { createdAt: 'desc' }
+  });
+}
+
+export async function updateExamResult(id: number, data: Partial<{ 
+  title: string; 
+  content: string;
+  fileUrl?: string;
+}>) {
+  return prisma.examResult.update({ 
+    where: { id },
+    data
+  });
+}
+
+export async function deleteExamResult(id: number) {
+  return prisma.examResult.delete({ where: { id } });
+} 
+
+// --- AUTOMATIC BILLING ---
+
+/**
+ * Facture automatiquement un examen médical
+ * @param patientId ID du patient
+ * @param examId ID de l'examen médical
+ * @returns Objet contenant le paiement créé ou une erreur
+ */
+export async function billMedicalExam(patientId: number, examId: number) {
+  try {
+    // Vérifier si le patient a un abonnement actif
+    const isSubscribed = await hasActiveSubscription(patientId);
+    
+    // Si le patient a un abonnement actif, pas besoin de facturer
+    if (isSubscribed) {
+      return { success: true, message: "Patient abonné, aucune facturation nécessaire" };
+    }
+    
+    // Sinon, créer un paiement pour l'examen (500 FCFA)
+    const payment = await createPayment({
+      patientId,
+      amount: 500, // Montant fixe pour un examen médical
+      method: "automatic_billing",
+      details: `Facturation automatique pour l'examen médical #${examId}`
+    });
+    
+    return { success: true, payment };
+  } catch (error) {
+    console.error('Erreur lors de la facturation de l\'examen:', error);
+    return { success: false, error: 'Erreur lors de la facturation.' };
+  }
+}
+
+/**
+ * Facture automatiquement une ordonnance
+ * @param patientId ID du patient
+ * @param prescriptionId ID de l'ordonnance
+ * @returns Objet contenant le paiement créé ou une erreur
+ */
+export async function billPrescription(patientId: number, prescriptionId: number) {
+  try {
+    // Vérifier si le patient a un abonnement actif
+    const isSubscribed = await hasActiveSubscription(patientId);
+    
+    // Si le patient a un abonnement actif, pas besoin de facturer
+    if (isSubscribed) {
+      return { success: true, message: "Patient abonné, aucune facturation nécessaire" };
+    }
+    
+    // Sinon, créer un paiement pour l'ordonnance (500 FCFA)
+    const payment = await createPayment({
+      patientId,
+      amount: 500, // Montant fixe pour une ordonnance
+      method: "automatic_billing",
+      details: `Facturation automatique pour l'ordonnance #${prescriptionId}`
+    });
+    
+    return { success: true, payment };
+  } catch (error) {
+    console.error('Erreur lors de la facturation de l\'ordonnance:', error);
+    return { success: false, error: 'Erreur lors de la facturation.' };
+  }
+} 
+
+// --- DOCUMENTS MEDICAUX ---
+export async function createMedicalDocument(data: {
+  patientId: number;
+  type: string;
+  title: string;
+  description?: string;
+  fileUrl: string;
+}) {
+  try {
+    // Créer un nouveau document médical
+    const document = await prisma.medicalDocument.create({
+      data: {
+        patientId: data.patientId,
+        type: data.type,
+        title: data.title,
+        description: data.description,
+        fileUrl: data.fileUrl,
+        createdAt: new Date()
+      }
+    });
+
+    return { success: true, document };
+  } catch (error) {
+    console.error('Erreur lors de la création du document médical:', error);
+    return { success: false, error: 'Erreur lors de la création du document.' };
+  }
+}
+
+export async function getMedicalDocumentsByPatientId(patientId: number) {
+  try {
+    const documents = await prisma.medicalDocument.findMany({
+      where: { patientId },
+      orderBy: { createdAt: 'desc' }
+    });
+
+    return documents;
+  } catch (error) {
+    console.error('Erreur lors de la récupération des documents médicaux:', error);
+    return [];
+  }
+}
+
+export async function deleteMedicalDocument(id: number) {
+  try {
+    await prisma.medicalDocument.delete({
+      where: { id }
+    });
+    return { success: true };
+  } catch (error) {
+    console.error('Erreur lors de la suppression du document médical:', error);
+    return { success: false, error: 'Erreur lors de la suppression du document.' };
   }
 } 

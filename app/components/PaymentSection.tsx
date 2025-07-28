@@ -8,9 +8,10 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import Image from 'next/image';
 import { useAuth } from '../../hooks/useAuth';
 import { useEffect, useState } from 'react';
-import { getPatientByUserId, getPayments, createPayment } from '@/actions';
+import { getPatientByUserId, getPayments, createPayment, hasActiveSubscription } from '@/actions';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Loader2 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
 // Type local pour Payment (à harmoniser avec le backend si besoin)
 type Payment = {
@@ -35,13 +36,19 @@ const SERVICE_LIST = [
   },
   {
     key: 'prescription',
-    label: 'Renouvellement d\'ordonnance',
-    description: 'Demandez le renouvellement de votre ordonnance',
+    label: 'Ordonnance médicale',
+    description: 'Création ou renouvellement d\'ordonnance',
+    amount: 500,
+  },
+  {
+    key: 'medical_exam',
+    label: 'Examen médical',
+    description: 'Prescription d\'un examen médical',
     amount: 500,
   },
   {
     key: 'results',
-    label: 'Téléchargement des résultats d\'examen',
+    label: 'Téléchargement des résultats',
     description: 'Téléchargez vos résultats d\'analyses',
     amount: 500,
   },
@@ -49,6 +56,7 @@ const SERVICE_LIST = [
 
 const PaymentSection = () => {
   const { user, isLoading } = useAuth();
+  const router = useRouter();
   const searchParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
   const [patientId, setPatientId] = useState<number | null>(null);
   const [payments, setPayments] = useState<Payment[]>([]);
@@ -62,6 +70,7 @@ const PaymentSection = () => {
   const [formFields, setFormFields] = useState<Record<string, string>>({});
   const [formValid, setFormValid] = useState(false);
   const [subscriptionSuccess, setSubscriptionSuccess] = useState(false);
+  const [hasSubscription, setHasSubscription] = useState<boolean | null>(null);
 
   // Lecture des paramètres d'URL pour le paiement d'abonnement
   let amount = null, months = null, structureId = null;
@@ -78,6 +87,21 @@ const PaymentSection = () => {
       return () => clearTimeout(timer);
     }
   }, [message]);
+
+  // Vérifier l'abonnement actif
+  useEffect(() => {
+    const checkSubscription = async () => {
+      if (patientId) {
+        try {
+          const hasActive = await hasActiveSubscription(patientId);
+          setHasSubscription(hasActive);
+        } catch (error) {
+          console.error('Erreur lors de la vérification de l\'abonnement:', error);
+        }
+      }
+    };
+    checkSubscription();
+  }, [patientId]);
 
   // Validation dynamique selon la méthode
   useEffect(() => {
@@ -398,6 +422,79 @@ const PaymentSection = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 w-full">
           {/* Colonne gauche : Méthodes, stats, fonctionnalités */}
           <div className="lg:col-span-1 space-y-6 order-2 max-w-full">
+            {/* Section Abonnement - NOUVELLE SECTION */}
+            <Card className="card bg-gradient-to-br from-primary/10 to-secondary/10 shadow-md max-w-full border-2 border-primary/20">
+              <CardHeader>
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <Sparkles className="w-5 h-5 text-primary" />
+                  {hasSubscription ? 'Abonnement Actif' : 'Abonnement Premium'}
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {hasSubscription ? (
+                  <>
+                    <div className="text-sm text-success mb-4">
+                      ✅ Vous avez un abonnement actif ! Vous bénéficiez de toutes les fonctionnalités premium.
+                    </div>
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-2 text-sm">
+                        <CheckCircle className="w-4 h-4 text-success" />
+                        <span>Accès illimité aux dossiers médicaux</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-sm">
+                        <CheckCircle className="w-4 h-4 text-success" />
+                        <span>Examens médicaux illimités</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-sm">
+                        <CheckCircle className="w-4 h-4 text-success" />
+                        <span>Prescriptions sans limite</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-sm">
+                        <CheckCircle className="w-4 h-4 text-success" />
+                        <span>Support prioritaire</span>
+                      </div>
+                    </div>
+                    <Button 
+                      className="btn btn-outline w-full mt-4" 
+                      onClick={() => router.push('/payment/subscribe')}
+                    >
+                      Gérer mon abonnement
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <div className="text-sm text-base-content/70 mb-4">
+                      Accédez à toutes les fonctionnalités sans restriction avec un abonnement adapté à vos besoins.
+                    </div>
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-2 text-sm">
+                        <CheckCircle className="w-4 h-4 text-success" />
+                        <span>Accès illimité aux dossiers médicaux</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-sm">
+                        <CheckCircle className="w-4 h-4 text-success" />
+                        <span>Examens médicaux illimités</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-sm">
+                        <CheckCircle className="w-4 h-4 text-success" />
+                        <span>Prescriptions sans limite</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-sm">
+                        <CheckCircle className="w-4 h-4 text-success" />
+                        <span>Support prioritaire</span>
+                      </div>
+                    </div>
+                    <Button 
+                      className="btn btn-primary w-full mt-4" 
+                      onClick={() => router.push('/payment/subscribe')}
+                    >
+                      Voir les abonnements
+                    </Button>
+                  </>
+                )}
+              </CardContent>
+            </Card>
+
             <Card className="card bg-base-100 shadow-md max-w-full">
               <CardHeader>
                 <CardTitle className="text-lg">Méthodes de paiement</CardTitle>

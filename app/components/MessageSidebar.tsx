@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useMessagingInterlocutor } from '../../hooks/useMessagingInterlocutor';
 import { useAuth } from '../../hooks/useAuth';
 import MessageConversation from './MessageConversation';
@@ -8,14 +8,25 @@ interface MessageSidebarProps {
   open: boolean;
   onClose: () => void;
   children?: React.ReactNode;
+  selectedPatientId?: number;
 }
 
-export default function MessageSidebar({ open, onClose }: MessageSidebarProps) {
+export default function MessageSidebar({ open, onClose, selectedPatientId }: MessageSidebarProps) {
   const { user } = useAuth();
   const { loading, interlocutor, patients } = useMessagingInterlocutor();
   const [selectedPatient, setSelectedPatient] = useState<number | null>(null);
 
-  console.log('🔍 MessageSidebar - user:', user?.role, 'interlocutor:', interlocutor, 'loading:', loading);
+  // Si un patientId est fourni, le sélectionner automatiquement
+  useEffect(() => {
+    if (selectedPatientId && patients.length > 0) {
+      const patient = patients.find(p => p.id === selectedPatientId);
+      if (patient) {
+        setSelectedPatient(patient.id);
+      }
+    }
+  }, [selectedPatientId, patients]);
+
+  console.log('🔍 MessageSidebar - user:', user?.role, 'interlocutor:', interlocutor, 'loading:', loading, 'selectedPatientId:', selectedPatientId);
 
   // Affichage pour le patient : médecin référent
   if (user?.role === 'PATIENT') {

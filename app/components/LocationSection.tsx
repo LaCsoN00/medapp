@@ -61,15 +61,15 @@ const GABON_PROVINCES: string[] = [
   'Woleu-Ntem',
 ];
 
-// Fonction utilitaire pour souscrire à une structure
-async function subscribeToStructure(userId: number, medicalLocationId: number) {
-  const res = await fetch('/api/patient/subscription', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ userId, medicalLocationId })
-  });
-  return res.json();
-}
+// Fonction utilitaire pour souscrire à une structure (non utilisée pour le moment)
+// async function subscribeToStructure(userId: number, medicalLocationId: number) {
+//   const res = await fetch('/api/patient/subscription', {
+//     method: 'POST',
+//     headers: { 'Content-Type': 'application/json' },
+//     body: JSON.stringify({ userId, medicalLocationId })
+//   });
+//   return res.json();
+// }
 
 
 
@@ -139,24 +139,24 @@ const LocationSection = () => {
   const pharmaciesRef = useRef<HTMLDivElement>(null);
   const clinicsRef = useRef<HTMLDivElement>(null);
 
-  // Fonction utilitaire pour gérer la souscription
-  const handleSubscribe = async (structureId: number) => {
-    if (!user) return;
-    
-    try {
-      await subscribeToStructure(user.id, structureId);
-      toast({
-        title: "Souscription réussie !",
-        description: "Vous êtes maintenant abonné à cette structure.",
-      });
-    } catch {
-      toast({
-        title: "Erreur de souscription",
-        description: "Impossible de souscrire à cette structure.",
-        variant: "destructive",
-      });
-    }
-  };
+  // Fonction utilitaire pour gérer la souscription (non utilisée pour le moment)
+  // const handleSubscribe = async (structureId: number) => {
+  //   if (!user) return;
+  //   
+  //   try {
+  //     await subscribeToStructure(user.id, structureId);
+  //     toast({
+  //       title: "Souscription réussie !",
+  //       description: "Vous êtes maintenant abonné à cette structure.",
+  //     });
+  //   } catch {
+  //     toast({
+  //       title: "Erreur de souscription",
+  //       description: "Impossible de souscrire à cette structure.",
+  //       variant: "destructive",
+  //     });
+  //   }
+  // };
 
   useEffect(() => {
     if (user && (user.role === 'MEDECIN' || user.role === 'DOCTEUR')) {
@@ -605,9 +605,6 @@ const LocationSection = () => {
                                 </div>
                               </div>
                               <div className="flex gap-2 break-words max-w-full flex-wrap">
-                                <Button className="btn btn-primary flex-1" onClick={() => handleSubscribe(hospital.id)}>
-                                  Souscrire
-                                </Button>
                                 <Button className="btn btn-primary flex-1" onClick={() => openDirections(hospital)}>
                                   <Navigation className="w-4 h-4 mr-2" />
                                   Directions
@@ -683,9 +680,6 @@ const LocationSection = () => {
                                 </div>
                               </div>
                               <div className="flex gap-2 break-words max-w-full flex-wrap">
-                                <Button className="btn btn-primary flex-1" onClick={() => handleSubscribe(pharmacy.id)}>
-                                  Souscrire
-                                </Button>
                                 <Button className="btn btn-primary flex-1" onClick={() => openDirections(pharmacy)}>
                                   <Navigation className="w-4 h-4 mr-2" />
                                   Directions
@@ -761,9 +755,6 @@ const LocationSection = () => {
                                 </div>
                               </div>
                               <div className="flex gap-2 break-words max-w-full flex-wrap">
-                                <Button className="btn btn-primary flex-1" onClick={() => handleSubscribe(clinic.id)}>
-                                  Souscrire
-                                </Button>
                                 <Button className="btn btn-primary flex-1" onClick={() => openDirections(clinic)}>
                                   <Navigation className="w-4 h-4 mr-2" />
                                   Directions
