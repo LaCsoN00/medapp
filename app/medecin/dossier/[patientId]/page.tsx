@@ -116,7 +116,7 @@ const PatientDossierPage = () => {
   // const [medicalRecords] = useState<MedicalRecord[]>([]);
   const [medicalExams, setMedicalExams] = useState<MedicalExam[]>([]);
   const [payments, setPayments] = useState<Payment[]>([]);
-  // const [prescriptionRequests, setPrescriptionRequests] = useState<PrescriptionRequest[]>([]);
+  const [prescriptionRequests, setPrescriptionRequests] = useState<PrescriptionRequest[]>([]);
   const [healthData, setHealthData] = useState<HealthData[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('overview');
@@ -561,10 +561,11 @@ const PatientDossierPage = () => {
 
           {/* Onglets principaux */}
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid w-full grid-cols-6">
+            <TabsList className="grid w-full grid-cols-7">
               <TabsTrigger value="overview">Vue d&apos;ensemble</TabsTrigger>
               <TabsTrigger value="appointments">Rendez-vous</TabsTrigger>
               <TabsTrigger value="prescriptions">Ordonnances</TabsTrigger>
+              <TabsTrigger value="requests">Demandes</TabsTrigger>
               <TabsTrigger value="exams">Examens</TabsTrigger>
               <TabsTrigger value="payments">Paiements</TabsTrigger>
               <TabsTrigger value="health">Santé</TabsTrigger>
@@ -781,6 +782,46 @@ const PatientDossierPage = () => {
                         <Plus className="w-4 h-4 mr-2" />
                         Créer une ordonnance
                       </Button>
+                    </CardContent>
+                  </Card>
+                )}
+              </div>
+            </TabsContent>
+
+            {/* Demandes d'ordonnances */}
+            <TabsContent value="requests" className="space-y-6">
+              <h3 className="text-xl font-semibold">Demandes d&apos;ordonnances</h3>
+              
+              <div className="space-y-4">
+                {prescriptionRequests.map((request) => (
+                  <Card key={request.id}>
+                    <CardContent className="p-6">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h4 className="font-semibold text-lg">{request.motif}</h4>
+                          <p className="text-base-content/70">
+                            {new Date(request.createdAt).toLocaleDateString('fr-FR')}
+                          </p>
+                          {request.prescription && (
+                            <div className="mt-2 p-2 bg-base-200 rounded">
+                              <p className="text-sm font-medium">Ordonnance créée:</p>
+                              <p className="text-sm">{request.prescription.medication} - {request.prescription.dosage}</p>
+                            </div>
+                          )}
+                        </div>
+                        <Badge variant={request.status === 'APPROVED' ? 'default' : request.status === 'PENDING' ? 'secondary' : 'outline'}>
+                          {request.status}
+                        </Badge>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+                {prescriptionRequests.length === 0 && (
+                  <Card>
+                    <CardContent className="p-8 text-center">
+                      <FileText className="w-16 h-16 text-base-content/30 mx-auto mb-4" />
+                      <h3 className="text-lg font-semibold mb-2">Aucune demande</h3>
+                      <p className="text-base-content/70">Ce patient n&apos;a pas encore de demandes d&apos;ordonnances.</p>
                     </CardContent>
                   </Card>
                 )}
