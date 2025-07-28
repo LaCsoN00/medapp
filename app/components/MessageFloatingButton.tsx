@@ -1,4 +1,5 @@
 import React from 'react';
+import { useIsMobile } from '../../hooks/use-mobile';
 
 interface MessageFloatingButtonProps {
   hasNewMessage: boolean;
@@ -6,12 +7,14 @@ interface MessageFloatingButtonProps {
 }
 
 export default function MessageFloatingButton({ hasNewMessage, onClick }: MessageFloatingButtonProps) {
+  const isMobile = useIsMobile();
+
   return (
     <button
       onClick={onClick}
       style={{
         position: 'fixed',
-        bottom: 16,
+        bottom: isMobile ? 80 : 16, // Position plus haute sur mobile pour éviter la barre de navigation
         right: 4,
         zIndex: 1000,
         width: 52,
